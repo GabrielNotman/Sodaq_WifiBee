@@ -120,20 +120,20 @@ bool Sodaq_WifiBee::HTTPAction(const String server, const uint16_t port,
   const String method, const String location, const String headers,
   const String body, uint16_t& httpCode)
 {
-  return 0;
+  return true;
 }
 
 bool Sodaq_WifiBee::HTTPGet(const String server, const uint16_t port,
   const String location, const String headers, uint16_t& httpCode)
 {
-  return 0;
+  return true;
 }
 
 bool Sodaq_WifiBee::HTTPPost(const String server, const uint16_t port,
   const String location, const String headers, const String body,
   uint16_t& httpCode)
 {
-  return 0;
+  return true;
 }
 
 // TCP methods
@@ -172,6 +172,7 @@ bool Sodaq_WifiBee::readResponse(uint8_t& buffer, const size_t size)
 {
   //Send command to dump 
   //Read size-1 or response size
+  return true;
 }
 
 bool Sodaq_WifiBee::readHTTPResponse(uint8_t& buffer, const size_t size, 
@@ -180,6 +181,7 @@ bool Sodaq_WifiBee::readHTTPResponse(uint8_t& buffer, const size_t size,
   //Send command to dump
   //Read until empty line
   //Save the rest until buffer is full or response is complete
+  return true;
 }
 
 // Private methods
