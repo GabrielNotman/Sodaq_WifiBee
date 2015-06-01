@@ -220,12 +220,34 @@ bool Sodaq_WifiBee::readTillPrompt(const String prompt, const uint16_t timeMS)
 
   bool result = false;
 
-  //For now...
-  readForTime(timeMS);
+  uint16_t time = 0;
+  uint16_t index = 0;
+  uint16_t promptLen = prompt.length();
+  
+  while (time < timeMS) {
+    if (_dataStream->available()) {
+      char c = _dataStream->read();
+      diagPrint(c);
 
-  //Read data till matched
+      if (c == prompt[index]) {
+        index++;
 
-  return true; // result;
+        if (index == promptLen) {
+          result = true;
+          break;
+        }
+      }
+      else {
+        index = 0;
+      }
+    }
+    else {
+      time += 10;
+      delay(10);
+    }
+  }
+
+  return result; 
 }
 
 void Sodaq_WifiBee::send(const String data)
