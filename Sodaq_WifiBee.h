@@ -74,15 +74,16 @@ public:
 
   // HTTP methods
   // These use HTTP/1.1 and add headers for HOST (all) and Content-Length (except HTTPGet())
-  uint16_t HTTPAction(const char* server, const uint16_t port,
+  bool HTTPAction(const char* server, const uint16_t port,
       const char* method, const char* location, const char* headers,
-      const char* body);
+      const char* body, uint16_t& httpCode);
 
-  uint16_t HTTPGet(const char* server, const uint16_t port,
-      const char* location, const char* headers);
+  bool HTTPGet(const char* server, const uint16_t port,
+    const char* location, const char* headers, uint16_t& httpCode);
 
-  uint16_t HTTPPost(const char* server, const uint16_t port,
-      const char* location, const char* headers, const char* body);
+  bool HTTPPost(const char* server, const uint16_t port,
+    const char* location, const char* headers, const char* body, 
+    uint16_t& httpCode);
 
   // TCP methods
   bool openTCP(const char* server, uint16_t port);
@@ -95,8 +96,9 @@ public:
   bool closeUDP();
 
   // Read back
-  void readResponse(uint8_t buffer, const size_t size);
-  void readHTTPResponse(uint8_t buffer, const size_t size);
+  bool readResponse(uint8_t& buffer, const size_t size);
+  bool readHTTPResponse(uint8_t& buffer, const size_t size, 
+    uint16_t& httpCode);
 
 private:
   char* _APN;

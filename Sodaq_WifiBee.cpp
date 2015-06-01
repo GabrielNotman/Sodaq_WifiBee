@@ -83,21 +83,22 @@ void Sodaq_WifiBee::wake()
 }
 
 // HTTP methods
-uint16_t Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
+bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
     const char* method, const char* location, const char* headers,
-    const char* body)
+    const char* body, uint16_t& httpCode)
 {
   return 0;
 }
 
-uint16_t Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
-    const char* location, const char* headers)
+bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
+  const char* location, const char* headers, uint16_t& httpCode)
 {
   return 0;
 }
 
-uint16_t Sodaq_WifiBee::HTTPPost(const char* server, const uint16_t port,
-    const char* location, const char* headers, const char* body)
+bool Sodaq_WifiBee::HTTPPost(const char* server, const uint16_t port,
+  const char* location, const char* headers, const char* body, 
+  uint16_t& httpCode)
 {
   return 0;
 }
@@ -134,13 +135,14 @@ bool Sodaq_WifiBee::closeUDP()
   return closeConnection();
 }
 
-void Sodaq_WifiBee::readResponse(uint8_t buffer, const size_t size)
+bool Sodaq_WifiBee::readResponse(uint8_t& buffer, const size_t size)
 {
   //Send command to dump 
   //Read size-1 or response size
 }
 
-void Sodaq_WifiBee::readHTTPResponse(uint8_t buffer, const size_t size)
+bool Sodaq_WifiBee::readHTTPResponse(uint8_t& buffer, const size_t size, 
+  uint16_t& httpCode)
 {
   //Send command to dump
   //Read until empty line
