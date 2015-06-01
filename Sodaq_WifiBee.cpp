@@ -92,8 +92,8 @@ void Sodaq_WifiBee::init(HardwareSerial& stream, const uint32_t baudrate)
   sleep();
 }
 
-void Sodaq_WifiBee::connectionSettings(char* APN, char* username,
-    char* password)
+void Sodaq_WifiBee::connectionSettings(const String APN, const String username,
+  const String password)
 {
   _APN = APN;
   _username = username;

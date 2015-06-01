@@ -33,7 +33,7 @@ class Sodaq_WifiBee
 public:
   Sodaq_WifiBee();
   void init(HardwareSerial& stream, const uint32_t baudrate);
-  void connectionSettings(char* APN, char* username, char* password);
+  void connectionSettings(const String APN, const String username, const String password);
   void setDiag(Stream& stream);
 
   void sleep();
@@ -68,9 +68,9 @@ public:
     uint16_t& httpCode);
 
 private:
-  char* _APN;
-  char* _username;
-  char* _password;
+  String _APN;
+  String _username;
+  String _password;
 
   HardwareSerial* _dataStream;
   Stream* _diagStream;
