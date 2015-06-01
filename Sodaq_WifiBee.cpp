@@ -116,28 +116,28 @@ void Sodaq_WifiBee::wake()
 }
 
 // HTTP methods
-bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
-    const char* method, const char* location, const char* headers,
-    const char* body, uint16_t& httpCode)
+bool Sodaq_WifiBee::HTTPAction(const String server, const uint16_t port,
+  const String method, const String location, const String headers,
+  const String body, uint16_t& httpCode)
 {
   return 0;
 }
 
-bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
-  const char* location, const char* headers, uint16_t& httpCode)
+bool Sodaq_WifiBee::HTTPGet(const String server, const uint16_t port,
+  const String location, const String headers, uint16_t& httpCode)
 {
   return 0;
 }
 
-bool Sodaq_WifiBee::HTTPPost(const char* server, const uint16_t port,
-  const char* location, const char* headers, const char* body, 
+bool Sodaq_WifiBee::HTTPPost(const String server, const uint16_t port,
+  const String location, const String headers, const String body,
   uint16_t& httpCode)
 {
   return 0;
 }
 
 // TCP methods
-bool Sodaq_WifiBee::openTCP(const char* server, uint16_t port)
+bool Sodaq_WifiBee::openTCP(const String server, uint16_t port)
 {
   return openConnection(server, port, TCP_CONNECTION);
 }
@@ -153,7 +153,7 @@ bool Sodaq_WifiBee::closeTCP()
 }
 
 // UDP methods
-bool Sodaq_WifiBee::openUDP(const char* server, uint16_t port)
+bool Sodaq_WifiBee::openUDP(const String server, uint16_t port)
 {
   return openConnection(server, port, UDP_CONNECTION);
 }
@@ -210,7 +210,7 @@ void Sodaq_WifiBee::readForTime(const uint16_t timeMS)
   }
 }
 
-bool Sodaq_WifiBee::readTillPrompt(const char* prompt, const uint16_t timeMS)
+bool Sodaq_WifiBee::readTillPrompt(const String prompt, const uint16_t timeMS)
 {
   if (!_dataStream) {
     return false;
@@ -226,21 +226,21 @@ bool Sodaq_WifiBee::readTillPrompt(const char* prompt, const uint16_t timeMS)
   return true; // result;
 }
 
-void Sodaq_WifiBee::send(const char* data)
+void Sodaq_WifiBee::send(const String data)
 {
   if (_dataStream) {
     _dataStream->println(data);
   }
 }
 
-bool Sodaq_WifiBee::sendWaitForPrompt(const char* data, const char* prompt)
+bool Sodaq_WifiBee::sendWaitForPrompt(const String data, const String prompt)
 {
   send(data);
   return readTillPrompt(prompt, RESPONSE_TIMEOUT);
 }
 
-bool Sodaq_WifiBee::openConnection(const char* server, const uint16_t port,
-    const char* type)
+bool Sodaq_WifiBee::openConnection(const String server, const uint16_t port,
+  const String type)
 {
   wake();
   connect();

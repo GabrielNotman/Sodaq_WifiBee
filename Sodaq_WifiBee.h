@@ -41,24 +41,24 @@ public:
 
   // HTTP methods
   // These use HTTP/1.1 and add headers for HOST (all) and Content-Length (except HTTPGet())
-  bool HTTPAction(const char* server, const uint16_t port,
-      const char* method, const char* location, const char* headers,
-      const char* body, uint16_t& httpCode);
+  bool HTTPAction(const String server, const uint16_t port,
+    const String method, const String location, const String headers,
+    const String body, uint16_t& httpCode);
 
-  bool HTTPGet(const char* server, const uint16_t port,
-    const char* location, const char* headers, uint16_t& httpCode);
+  bool HTTPGet(const String server, const uint16_t port,
+    const String location, const String headers, uint16_t& httpCode);
 
-  bool HTTPPost(const char* server, const uint16_t port,
-    const char* location, const char* headers, const char* body, 
+  bool HTTPPost(const String server, const uint16_t port,
+    const String location, const String headers, const String body,
     uint16_t& httpCode);
 
   // TCP methods
-  bool openTCP(const char* server, uint16_t port);
+  bool openTCP(const String server, uint16_t port);
   bool sendTCPData(const uint8_t* data, const size_t length);
   bool closeTCP();
 
   // UDP methods
-  bool openUDP(const char* server, uint16_t port);
+  bool openUDP(const String server, uint16_t port);
   bool sendUDPData(const uint8_t* data, const size_t length);
   bool closeUDP();
 
@@ -77,13 +77,13 @@ private:
 
   void flushInputStream();
   void readForTime(const uint16_t timeMS);
-  bool readTillPrompt(const char* prompt, const uint16_t timeMS);
+  bool readTillPrompt(const String prompt, const uint16_t timeMS);
 
-  void send(const char* data);
-  bool sendWaitForPrompt(const char* data, const char* prompt);
+  void send(const String data);
+  bool sendWaitForPrompt(const String data, const String prompt);
 
-  bool openConnection(const char* server, const uint16_t port,
-      const char* type);
+  bool openConnection(const String server, const uint16_t port,
+    const String type);
   
   bool sendData(const uint8_t* data, const size_t length);
   bool closeConnection();
