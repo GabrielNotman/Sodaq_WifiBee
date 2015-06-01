@@ -78,7 +78,7 @@ void Sodaq_WifiBee::init(HardwareSerial& stream, const uint32_t baudrate)
   //We have to do this everytime as the settings persists until powered down
   //Send the command to change the rate on the bee
   String data = String("uart.setup(0,") + String(baudrate, DEC) + ",8,0,1,1)";
-  send(data.c_str());
+  send(data);
   readForTime(RESPONSE_TIMEOUT);
   delay(2500);
 
@@ -272,29 +272,28 @@ bool Sodaq_WifiBee::openConnection(const String server, const uint16_t port,
   String data;
 
   //Create the connection object
-  data = String("wifiConn=net.createConnection(") + type + ",false)";
-  sendWaitForPrompt(data.c_str(), LUA_PROMPT);
+  data = String("wifiConn=net.createConnection(") + type + ", false)";
+  sendWaitForPrompt(data, LUA_PROMPT);
 
   //Setup the callbacks
   data = String("wifiConn:on(\"connection\", ") + CONNECT_CALLBACK + ")";
-  sendWaitForPrompt(data.c_str(), LUA_PROMPT);
+  sendWaitForPrompt(data, LUA_PROMPT);
 
   data = String("wifiConn:on(\"reconnection\", ") + RECONNECT_CALLBACK + ")";
-  sendWaitForPrompt(data.c_str(), LUA_PROMPT);
+  sendWaitForPrompt(data, LUA_PROMPT);
 
   data = String("wifiConn:on(\"disconnection\", ") + DISCONNECT_CALLBACK + ")";
-  sendWaitForPrompt(data.c_str(), LUA_PROMPT);
+  sendWaitForPrompt(data, LUA_PROMPT);
 
   data = String("wifiConn:on(\"sent\", ") + SENT_CALLBACK + ")";
-  sendWaitForPrompt(data.c_str(), LUA_PROMPT);
+  sendWaitForPrompt(data, LUA_PROMPT);
 
   data = String("wifiConn:on(\"receive\", ") + RECEIVED_CALLBACK + ")";
-  sendWaitForPrompt(data.c_str(), LUA_PROMPT);
-  ;
+  sendWaitForPrompt(data, LUA_PROMPT);
 
   //Open the connection to the server
   data = String("wifiConn:connect(") + port + ",\"" + server + "\")";
-  return sendWaitForPrompt(data.c_str(), CONNECT_PROMPT);
+  return sendWaitForPrompt(data, CONNECT_PROMPT);
 }
 
 bool Sodaq_WifiBee::sendData(const uint8_t* data, const size_t length)
@@ -307,7 +306,7 @@ bool Sodaq_WifiBee::sendData(const uint8_t* data, const size_t length)
   _dataStream->write(data, length);
   _dataStream->println("\")");
 
-  return readTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
+  return readTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
 }
 
 bool Sodaq_WifiBee::closeConnection()
@@ -315,7 +314,7 @@ bool Sodaq_WifiBee::closeConnection()
   String data;
 
   data = String("wifiConn:close()");
-  bool result = sendWaitForPrompt(data.c_str(), DISCONNECT_PROMPT);
+  bool result = sendWaitForPrompt(data, DISCONNECT_PROMPT);
 
   sleep();
 
@@ -327,13 +326,13 @@ bool Sodaq_WifiBee::connect()
   String data;
 
   data = String("wifi.setmode(wifi.STATION)");
-  sendWaitForPrompt(data.c_str(), LUA_PROMPT);
+  sendWaitForPrompt(data, LUA_PROMPT);
 
   data = String("wifi.sta.config(\"") + _APN + "\",\"" + _password + "\")";
-  sendWaitForPrompt(data.c_str(), LUA_PROMPT);
+  sendWaitForPrompt(data, LUA_PROMPT);
 
   data = String("wifi.sta.connect()");
-  return sendWaitForPrompt(data.c_str(), LUA_PROMPT);
+  return sendWaitForPrompt(data, LUA_PROMPT);
 }
 
 bool Sodaq_WifiBee::disconnect()
@@ -341,5 +340,5 @@ bool Sodaq_WifiBee::disconnect()
   String data;
 
   data = String("wifi.sta.disconnect()");
-  return sendWaitForPrompt(data.c_str(), LUA_PROMPT);
+  return sendWaitForPrompt(data, LUA_PROMPT);
 }
