@@ -28,39 +28,6 @@
 #include <HardwareSerial.h>
 #include <Stream.h>
 
-#define ENABLE_RADIO_DIAG 1
-
-#if ENABLE_RADIO_DIAG
-#define diagPrint(...) { if (_diagStream) _diagStream->print(__VA_ARGS__); }
-#define diagPrintLn(...) { if (_diagStream) _diagStream->println(__VA_ARGS__); }
-#else
-#define diagPrint(...)
-#define diagPrintLn(...)
-#endif
-
-// Lua prompts
-#define LUA_PROMPT "\r\n> "
-#define CONNECT_PROMPT ".:Connected:."
-#define RECONNECT_PROMPT ".:Reconnected:."
-#define DISCONNECT_PROMPT ".:Disconnected:."
-#define SENT_PROMPT ".:Data Sent:."
-#define RECEIVED_PROMPT ".:Data Received:."
-
-// Lua connection callback scripts
-#define CONNECT_CALLBACK "function(socket) print(\".:Connected:.\") end"
-#define RECONNECT_CALLBACK "function(socket) print(\".:Reconnected:.\") end"
-#define DISCONNECT_CALLBACK "function(socket) print(\".:Disconnected:.\") end"
-#define SENT_CALLBACK "function(socket) print(\".:Data Sent:.\") end"
-#define RECEIVED_CALLBACK "function(socket, data) lastResponse=data lastSize=data:len() uart.write(0, \".:Data Received:.\\r\\n\", \"Length: \", tostring(data:len()), \"\\r\\n\", data, \"\\r\\n\") end"
-
-//Other constants
-#define RESPONSE_TIMEOUT 2000
-#define DEFAULT_BAUD 9600
-
-// Lua constants for each connection type
-#define TCP_CONNECTION "net.TCP"
-#define UDP_CONNECTION "net.UDP"
-
 class Sodaq_WifiBee
 {
 public:
