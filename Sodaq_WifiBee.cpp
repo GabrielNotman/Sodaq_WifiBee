@@ -77,25 +77,15 @@ void Sodaq_WifiBee::init(HardwareSerial& stream, const uint32_t baudrate)
   _dataStream = &stream;
   _dataStream->begin(DEFAULT_BAUD);
 
-  //Pull bee CTS low
-  pinMode(BEECTS, OUTPUT);
-  digitalWrite(BEECTS, LOW);
-  _delay(2500);
-
+ 
   //We have to do this everytime as the settings persists until powered down
   //Send the command to change the rate on the bee
   String data = String("uart.setup(0,") + String(baudrate, DEC) + ",8,0,1,1)";
-  send(data);
-  readForTime(RESPONSE_TIMEOUT);
-  _delay(2500);
-
+  sendWaitForPrompt(data, LUA_PROMPT, RESPONSE_TIMEOUT);
+  
   //Start the port again at new rate
   _dataStream->begin(baudrate);
-
-  //This is in case the Lua intpreter is confused
-  sendWaitForPrompt("end", LUA_PROMPT, RESPONSE_TIMEOUT);
-  readForTime(RESPONSE_TIMEOUT);
-
+    
   sleep();
 }
 
@@ -298,6 +288,7 @@ void Sodaq_WifiBee::send(const String data)
 bool Sodaq_WifiBee::sendWaitForPrompt(const String data, const String prompt,
   const uint32_t timeMS)
 {
+  readForTime(100);
   send(data);
   return readTillPrompt(prompt, timeMS);
 }
@@ -408,7 +399,7 @@ bool Sodaq_WifiBee::getStatus(uint8_t& status)
 {
   bool result = false;
   String data;
-  
+
   data = String("print(\"") + STATUS_CALLBACK + "\" .. wifi.sta.status())";
 
   if (sendWaitForPrompt(data, STATUS_PROMPT, RESPONSE_TIMEOUT)) {
