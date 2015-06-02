@@ -77,7 +77,6 @@ void Sodaq_WifiBee::init(HardwareSerial& stream, const uint32_t baudrate)
   _dataStream = &stream;
   _dataStream->begin(DEFAULT_BAUD);
 
- 
   //We have to do this everytime as the settings persists until powered down
   //Send the command to change the rate on the bee
   String data = String("uart.setup(0,") + String(baudrate, DEC) + ",8,0,1,1)";
@@ -196,26 +195,31 @@ void Sodaq_WifiBee::flushInputStream()
 {
   if (_dataStream) {
     while (_dataStream->available()) {
-      diagPrint(_dataStream->read());
+      diagPrint((char)_dataStream->read());
     }
   }
 }
 
-void Sodaq_WifiBee::readForTime(const uint32_t timeMS)
+int Sodaq_WifiBee::readForTime(const uint32_t timeMS)
 {
   if (!_dataStream) {
-    return;
+    return 0;
   }
 
+  int count = 0;
   uint32_t maxTS = millis() + timeMS;
+
   while (millis()  < maxTS) {
     if (_dataStream->available()) {
       char c = _dataStream->read();
       diagPrint(c);
+      count++;
     } else {
       _delay(10);
     }
   }
+
+  return count;
 }
 
 bool Sodaq_WifiBee::readChar(char& data, const uint32_t timeMS)
@@ -288,7 +292,7 @@ void Sodaq_WifiBee::send(const String data)
 bool Sodaq_WifiBee::sendWaitForPrompt(const String data, const String prompt,
   const uint32_t timeMS)
 {
-  readForTime(100);
+  flushInputStream();
   send(data);
   return readTillPrompt(prompt, timeMS);
 }
@@ -411,7 +415,7 @@ bool Sodaq_WifiBee::getStatus(uint8_t& status)
       }
     }
   }
-
+  
   return result;
 }
 

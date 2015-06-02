@@ -78,7 +78,7 @@ private:
   Stream* _diagStream;
 
   void flushInputStream();
-  void readForTime(const uint32_t timeMS);
+  int readForTime(const uint32_t timeMS);
   bool readChar(char& data, const uint32_t timeMS);
   bool readTillPrompt(const String prompt, const uint32_t timeMS);
   
