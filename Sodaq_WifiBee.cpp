@@ -142,10 +142,14 @@ bool Sodaq_WifiBee::openTCP(const String server, uint16_t port)
   return openConnection(server, port, TCP_CONNECTION);
 }
 
-bool Sodaq_WifiBee::sendTCPData(const uint8_t* data, const size_t length,
-  const bool binary)
+bool Sodaq_WifiBee::sendTCPAscii(const String data) 
 {
-  return sendData(data, length, binary);
+  return sendAsciiData(data);
+}
+
+bool Sodaq_WifiBee::sendTCPBinary(const uint8_t* data, const size_t length)
+{
+  return sendBinaryData(data, length);
 }
 
 bool Sodaq_WifiBee::closeTCP()
@@ -159,9 +163,14 @@ bool Sodaq_WifiBee::openUDP(const String server, uint16_t port)
   return openConnection(server, port, UDP_CONNECTION);
 }
 
-bool Sodaq_WifiBee::sendUDPData(const uint8_t* data, const size_t length)
+bool Sodaq_WifiBee::sendUDPAscii(const String data)
 {
-  return sendData(data, length);
+  return sendAsciiData(data);
+}
+
+bool Sodaq_WifiBee::sendUDPBinary(const uint8_t* data, const size_t length)
+{
+  return sendBinaryData(data, length);
 }
 
 bool Sodaq_WifiBee::closeUDP()
@@ -297,21 +306,29 @@ bool Sodaq_WifiBee::openConnection(const String server, const uint16_t port,
   return sendWaitForPrompt(data, CONNECT_PROMPT);
 }
 
-bool Sodaq_WifiBee::sendData(const uint8_t* data, const size_t length,
-  const bool binary)
+bool Sodaq_WifiBee::sendAsciiData(const String data)
+{
+  if (!_dataStream) {
+    return false;
+  }
+
+  String output = escapeString(data);
+
+  _dataStream->print("wifiConn:send(\"");
+  _dataStream->write((uint8_t*)output.c_str(), output.length());
+  _dataStream->println("\")");
+
+  return readTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
+}
+
+bool Sodaq_WifiBee::sendBinaryData(const uint8_t* data, const size_t length)
 {
   if (!_dataStream) {
     return false;
   }
 
   _dataStream->print("wifiConn:send(\"");
-  if (binary) {
-    _dataStream->write(data, length);
-  }
-  else {
-    String escapedData = escapedString(data, length);
-    _dataStream->write(escapedData.c_str(), escapedData.length());
-  }
+  _dataStream->write(data, length);
   _dataStream->println("\")");
 
   return readTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
@@ -351,11 +368,12 @@ bool Sodaq_WifiBee::disconnect()
   return sendWaitForPrompt(data, LUA_PROMPT);
 }
 
-String Sodaq_WifiBee::escapedString(const uint8_t* input, const size_t length)
+String Sodaq_WifiBee::escapeString(const String input)
 {
-  //Todo add other lua escape characters?
   String output;
+  size_t length = input.length();
 
+  //Todo add other lua escape characters?
   for (int i = 0; i < length; i++) {
     switch (input[i]) {
       case '\r': output += "\\r";

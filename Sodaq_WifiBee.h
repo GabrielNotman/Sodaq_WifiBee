@@ -54,13 +54,14 @@ public:
 
   // TCP methods
   bool openTCP(const String server, uint16_t port);
-  bool sendTCPData(const uint8_t* data, const size_t length,
-    const bool binary = false);
+  bool sendTCPAscii(const String data);
+  bool sendTCPBinary(const uint8_t* data, const size_t length);
   bool closeTCP();
 
   // UDP methods
   bool openUDP(const String server, uint16_t port);
-  bool sendUDPData(const uint8_t* data, const size_t length);
+  bool sendUDPAscii(const String data);
+  bool sendUDPBinary(const uint8_t* data, const size_t length);
   bool closeUDP();
 
   // Read back
@@ -86,14 +87,14 @@ private:
   bool openConnection(const String server, const uint16_t port,
     const String type);
   
-  bool sendData(const uint8_t* data, const size_t length,
-    const bool binary = false);
+  bool sendAsciiData(const String data);
+  bool sendBinaryData(const uint8_t* data, const size_t length);
   bool closeConnection();
 
   bool connect();
   bool disconnect();
 
-  String escapedString(const uint8_t* input, const size_t length);
+  String escapeString(const String input);
 };
 
 #endif // SODAQ_WIFI_BEE_H_
