@@ -83,7 +83,8 @@ private:
   bool readTillPrompt(const String prompt, const uint32_t timeMS);
   
   void send(const String data);
-  bool sendWaitForPrompt(const String data, const String prompt);
+  bool sendWaitForPrompt(const String data, const String prompt,
+    const uint32_t timeMS);
 
   bool openConnection(const String server, const uint16_t port,
     const String type);

@@ -52,6 +52,8 @@
 // Timeout constants
 #define RESPONSE_TIMEOUT 2000
 #define WIFI_CONNECT_TIMEOUT 4000
+#define SERVER_CONNECT_TIMEOUT 5000
+#define SERVER_DISCONNECT_TIMEOUT 2000
 
 // Other
 #define DEFAULT_BAUD 9600
@@ -91,7 +93,7 @@ void Sodaq_WifiBee::init(HardwareSerial& stream, const uint32_t baudrate)
   _dataStream->begin(baudrate);
 
   //This is in case the Lua intpreter is confused
-  sendWaitForPrompt("end", LUA_PROMPT);
+  sendWaitForPrompt("end", LUA_PROMPT, RESPONSE_TIMEOUT);
   readForTime(RESPONSE_TIMEOUT);
 
   sleep();
@@ -293,10 +295,11 @@ void Sodaq_WifiBee::send(const String data)
   }
 }
 
-bool Sodaq_WifiBee::sendWaitForPrompt(const String data, const String prompt)
+bool Sodaq_WifiBee::sendWaitForPrompt(const String data, const String prompt,
+  const uint32_t timeMS)
 {
   send(data);
-  return readTillPrompt(prompt, RESPONSE_TIMEOUT);
+  return readTillPrompt(prompt, timeMS);
 }
 
 bool Sodaq_WifiBee::openConnection(const String server, const uint16_t port,
@@ -311,27 +314,27 @@ bool Sodaq_WifiBee::openConnection(const String server, const uint16_t port,
 
     //Create the connection object
     data = String("wifiConn=net.createConnection(") + type + ", false)";
-    sendWaitForPrompt(data, LUA_PROMPT);
+    sendWaitForPrompt(data, LUA_PROMPT, RESPONSE_TIMEOUT);
 
     //Setup the callbacks
     data = String("wifiConn:on(\"connection\", ") + CONNECT_CALLBACK + ")";
-    sendWaitForPrompt(data, LUA_PROMPT);
+    sendWaitForPrompt(data, LUA_PROMPT, RESPONSE_TIMEOUT);
 
     data = String("wifiConn:on(\"reconnection\", ") + RECONNECT_CALLBACK + ")";
-    sendWaitForPrompt(data, LUA_PROMPT);
+    sendWaitForPrompt(data, LUA_PROMPT, RESPONSE_TIMEOUT);
 
     data = String("wifiConn:on(\"disconnection\", ") + DISCONNECT_CALLBACK + ")";
-    sendWaitForPrompt(data, LUA_PROMPT);
+    sendWaitForPrompt(data, LUA_PROMPT, RESPONSE_TIMEOUT);
 
     data = String("wifiConn:on(\"sent\", ") + SENT_CALLBACK + ")";
-    sendWaitForPrompt(data, LUA_PROMPT);
+    sendWaitForPrompt(data, LUA_PROMPT, RESPONSE_TIMEOUT);
 
     data = String("wifiConn:on(\"receive\", ") + RECEIVED_CALLBACK + ")";
-    sendWaitForPrompt(data, LUA_PROMPT);
+    sendWaitForPrompt(data, LUA_PROMPT, RESPONSE_TIMEOUT);
 
     //Open the connection to the server
     data = String("wifiConn:connect(") + port + ",\"" + server + "\")";
-    result = sendWaitForPrompt(data, CONNECT_PROMPT);
+    result = sendWaitForPrompt(data, CONNECT_PROMPT, SERVER_CONNECT_TIMEOUT);
   }
 
   return result;
@@ -370,7 +373,7 @@ bool Sodaq_WifiBee::closeConnection()
   String data;
 
   data = String("wifiConn:close()");
-  bool result = sendWaitForPrompt(data, DISCONNECT_PROMPT);
+  bool result = sendWaitForPrompt(data, DISCONNECT_PROMPT, SERVER_DISCONNECT_TIMEOUT);
 
   sleep();
 
@@ -382,13 +385,13 @@ bool Sodaq_WifiBee::connect()
   String data;
 
   data = String("wifi.setmode(wifi.STATION)");
-  sendWaitForPrompt(data, LUA_PROMPT);
+  sendWaitForPrompt(data, LUA_PROMPT, RESPONSE_TIMEOUT);
 
   data = String("wifi.sta.config(\"") + _APN + "\",\"" + _password + "\")";
-  sendWaitForPrompt(data, LUA_PROMPT);
+  sendWaitForPrompt(data, LUA_PROMPT, RESPONSE_TIMEOUT);
 
   data = String("wifi.sta.connect()");
-  sendWaitForPrompt(data, LUA_PROMPT);
+  sendWaitForPrompt(data, LUA_PROMPT, RESPONSE_TIMEOUT);
 
   return waitForIP(WIFI_CONNECT_TIMEOUT);
 }
@@ -398,7 +401,7 @@ bool Sodaq_WifiBee::disconnect()
   String data;
 
   data = String("wifi.sta.disconnect()");
-  return sendWaitForPrompt(data, LUA_PROMPT);
+  return sendWaitForPrompt(data, LUA_PROMPT, RESPONSE_TIMEOUT);
 }
 
 bool Sodaq_WifiBee::getStatus(uint8_t& status)
@@ -408,7 +411,7 @@ bool Sodaq_WifiBee::getStatus(uint8_t& status)
   
   data = String("print(\"") + STATUS_CALLBACK + "\" .. wifi.sta.status())";
 
-  if (sendWaitForPrompt(data, STATUS_PROMPT)) {
+  if (sendWaitForPrompt(data, STATUS_PROMPT, RESPONSE_TIMEOUT)) {
     char statusCode;    
     if (readChar(statusCode, RESPONSE_TIMEOUT)) {
       if ((statusCode > 47) && (statusCode < 54)) { //characters 0..5
