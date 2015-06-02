@@ -209,7 +209,7 @@ void Sodaq_WifiBee::flushInputStream()
   }
 }
 
-void Sodaq_WifiBee::readForTime(const uint16_t timeMS)
+void Sodaq_WifiBee::readForTime(const uint32_t timeMS)
 {
   if (!_dataStream) {
     return;
@@ -226,7 +226,7 @@ void Sodaq_WifiBee::readForTime(const uint16_t timeMS)
   }
 }
 
-bool Sodaq_WifiBee::readChar(char& data, const uint16_t timeMS)
+bool Sodaq_WifiBee::readChar(char& data, const uint32_t timeMS)
 {
   if (!_dataStream) {
     return false;
@@ -249,7 +249,7 @@ bool Sodaq_WifiBee::readChar(char& data, const uint16_t timeMS)
   return result;
 }
 
-bool Sodaq_WifiBee::readTillPrompt(const String prompt, const uint16_t timeMS)
+bool Sodaq_WifiBee::readTillPrompt(const String prompt, const uint32_t timeMS)
 {
   if (!_dataStream) {
     return false;
@@ -421,7 +421,7 @@ bool Sodaq_WifiBee::getStatus(uint8_t& status)
   return result;
 }
 
-bool Sodaq_WifiBee::waitForIP(const uint16_t timeMS)
+bool Sodaq_WifiBee::waitForIP(const uint32_t timeMS)
 {
   bool result = false;
 

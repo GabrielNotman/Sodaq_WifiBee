@@ -78,9 +78,9 @@ private:
   Stream* _diagStream;
 
   void flushInputStream();
-  void readForTime(const uint16_t timeMS);
-  bool readChar(char& data, const uint16_t timeMS);
-  bool readTillPrompt(const String prompt, const uint16_t timeMS);
+  void readForTime(const uint32_t timeMS);
+  bool readChar(char& data, const uint32_t timeMS);
+  bool readTillPrompt(const String prompt, const uint32_t timeMS);
   
   void send(const String data);
   bool sendWaitForPrompt(const String data, const String prompt);
@@ -96,7 +96,7 @@ private:
   bool disconnect();
 
   bool getStatus(uint8_t& status);
-  bool waitForIP(const uint16_t timeMS);
+  bool waitForIP(const uint32_t timeMS);
 
   String escapeString(const String input);
   inline void _delay(uint32_t ms);
