@@ -303,33 +303,38 @@ bool Sodaq_WifiBee::openConnection(const String server, const uint16_t port,
   const String type)
 {
   wake();
-  connect();
 
-  String data;
+  bool result = false;
+  
+  if (connect()) {
+    String data;
 
-  //Create the connection object
-  data = String("wifiConn=net.createConnection(") + type + ", false)";
-  sendWaitForPrompt(data, LUA_PROMPT);
+    //Create the connection object
+    data = String("wifiConn=net.createConnection(") + type + ", false)";
+    sendWaitForPrompt(data, LUA_PROMPT);
 
-  //Setup the callbacks
-  data = String("wifiConn:on(\"connection\", ") + CONNECT_CALLBACK + ")";
-  sendWaitForPrompt(data, LUA_PROMPT);
+    //Setup the callbacks
+    data = String("wifiConn:on(\"connection\", ") + CONNECT_CALLBACK + ")";
+    sendWaitForPrompt(data, LUA_PROMPT);
 
-  data = String("wifiConn:on(\"reconnection\", ") + RECONNECT_CALLBACK + ")";
-  sendWaitForPrompt(data, LUA_PROMPT);
+    data = String("wifiConn:on(\"reconnection\", ") + RECONNECT_CALLBACK + ")";
+    sendWaitForPrompt(data, LUA_PROMPT);
 
-  data = String("wifiConn:on(\"disconnection\", ") + DISCONNECT_CALLBACK + ")";
-  sendWaitForPrompt(data, LUA_PROMPT);
+    data = String("wifiConn:on(\"disconnection\", ") + DISCONNECT_CALLBACK + ")";
+    sendWaitForPrompt(data, LUA_PROMPT);
 
-  data = String("wifiConn:on(\"sent\", ") + SENT_CALLBACK + ")";
-  sendWaitForPrompt(data, LUA_PROMPT);
+    data = String("wifiConn:on(\"sent\", ") + SENT_CALLBACK + ")";
+    sendWaitForPrompt(data, LUA_PROMPT);
 
-  data = String("wifiConn:on(\"receive\", ") + RECEIVED_CALLBACK + ")";
-  sendWaitForPrompt(data, LUA_PROMPT);
+    data = String("wifiConn:on(\"receive\", ") + RECEIVED_CALLBACK + ")";
+    sendWaitForPrompt(data, LUA_PROMPT);
 
-  //Open the connection to the server
-  data = String("wifiConn:connect(") + port + ",\"" + server + "\")";
-  return sendWaitForPrompt(data, CONNECT_PROMPT);
+    //Open the connection to the server
+    data = String("wifiConn:connect(") + port + ",\"" + server + "\")";
+    result = sendWaitForPrompt(data, CONNECT_PROMPT);
+  }
+
+  return result;
 }
 
 bool Sodaq_WifiBee::sendAsciiData(const String data)
