@@ -51,6 +51,7 @@
 
 //Other constants
 #define RESPONSE_TIMEOUT 2000
+#define WIFI_CONNECT_TIMEOUT 100
 #define DEFAULT_BAUD 9600
 
 // Lua constants for each connection type
@@ -236,7 +237,7 @@ bool Sodaq_WifiBee::readChar(char& data, const uint16_t timeMS)
   while ((time < timeMS) && (!result)) {
     if (_dataStream->available()) {
       data = _dataStream->read();
-      diagPrint(data);
+      diagPrintLn(data);
       result = true;
     }
     else {
@@ -383,7 +384,9 @@ bool Sodaq_WifiBee::connect()
   sendWaitForPrompt(data, LUA_PROMPT);
 
   data = String("wifi.sta.connect()");
-  return sendWaitForPrompt(data, LUA_PROMPT);
+  sendWaitForPrompt(data, LUA_PROMPT);
+
+  return waitForIP(WIFI_CONNECT_TIMEOUT);
 }
 
 bool Sodaq_WifiBee::disconnect()
@@ -409,6 +412,45 @@ bool Sodaq_WifiBee::getStatus(uint8_t& status)
         result = true;
       }
     }
+  }
+
+  return result;
+}
+
+bool Sodaq_WifiBee::waitForIP(const uint16_t timeMS)
+{
+  bool result = false;
+
+  uint8_t status = 1;
+  uint16_t time = 0;
+
+  while ((time < timeMS) && (status == 1)) {
+    delay(10);
+    time += 10;
+    getStatus(status);
+  }
+
+  //0 = Idle
+  //1 = Connecting
+  //2 = Wrong Credentials
+  //3 = AP not found
+  //4 = Connect Fail
+  //5 = Got IP
+
+  switch(status) {
+    case 0: diagPrintLn("Failed to connect: Station idle");
+      break;
+    case 1: diagPrintLn("Failed to connect: Timeout");
+      break;
+    case 2: diagPrintLn("Failed to connect: Wrong credentials");
+      break;
+    case 3: diagPrintLn("Failed to connect: AP not found");
+      break;
+    case 4: diagPrintLn("Failed to connect: Connection failed");
+      break;
+    case 5: diagPrintLn("Success: IP received");
+      result = true;
+      break;
   }
 
   return result;

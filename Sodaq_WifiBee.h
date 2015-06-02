@@ -96,6 +96,7 @@ private:
   bool disconnect();
 
   bool getStatus(uint8_t& status);
+  bool waitForIP(const uint16_t timeMS);
 
   String escapeString(const String input);
 };
