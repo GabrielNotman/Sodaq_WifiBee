@@ -49,9 +49,11 @@
 #define RECEIVED_CALLBACK "function(socket, data) lastResponse=data lastSize=data:len() uart.write(0, \".:Data Received:.\\r\\n\", \"Length: \", tostring(data:len()), \"\\r\\n\", data, \"\\r\\n\") end"
 #define STATUS_CALLBACK "Status: "
 
-//Other constants
+// Timeout constants
 #define RESPONSE_TIMEOUT 2000
-#define WIFI_CONNECT_TIMEOUT 100
+#define WIFI_CONNECT_TIMEOUT 4000
+
+// Other
 #define DEFAULT_BAUD 9600
 
 // Lua constants for each connection type
@@ -76,14 +78,14 @@ void Sodaq_WifiBee::init(HardwareSerial& stream, const uint32_t baudrate)
   //Pull bee CTS low
   pinMode(BEECTS, OUTPUT);
   digitalWrite(BEECTS, LOW);
-  delay(2500);
+  _delay(2500);
 
   //We have to do this everytime as the settings persists until powered down
   //Send the command to change the rate on the bee
   String data = String("uart.setup(0,") + String(baudrate, DEC) + ",8,0,1,1)";
   send(data);
   readForTime(RESPONSE_TIMEOUT);
-  delay(2500);
+  _delay(2500);
 
   //Start the port again at new rate
   _dataStream->begin(baudrate);
@@ -213,14 +215,13 @@ void Sodaq_WifiBee::readForTime(const uint16_t timeMS)
     return;
   }
 
-  uint16_t time = 0;
-  while (time < timeMS) {
+  uint32_t maxTS = millis() + timeMS;
+  while (millis()  < maxTS) {
     if (_dataStream->available()) {
       char c = _dataStream->read();
       diagPrint(c);
     } else {
-      time += 10;
-      delay(10);
+      _delay(10);
     }
   }
 }
@@ -233,16 +234,15 @@ bool Sodaq_WifiBee::readChar(char& data, const uint16_t timeMS)
 
   bool result = false;
 
-  uint16_t time = 0;
-  while ((time < timeMS) && (!result)) {
+  uint32_t maxTS = millis() + timeMS;
+  while ((millis()  < maxTS) && (!result)) {
     if (_dataStream->available()) {
       data = _dataStream->read();
       diagPrintLn(data);
       result = true;
     }
     else {
-      time += 10;
-      delay(10);
+      _delay(10);
     }
   }
   
@@ -257,11 +257,11 @@ bool Sodaq_WifiBee::readTillPrompt(const String prompt, const uint16_t timeMS)
 
   bool result = false;
 
-  uint16_t time = 0;
+  uint32_t maxTS = millis() + timeMS;
   uint16_t index = 0;
   uint16_t promptLen = prompt.length();
   
-  while (time < timeMS) {
+  while (millis()  < maxTS) {
     if (_dataStream->available()) {
       char c = _dataStream->read();
       diagPrint(c);
@@ -279,8 +279,7 @@ bool Sodaq_WifiBee::readTillPrompt(const String prompt, const uint16_t timeMS)
       }
     }
     else {
-      time += 10;
-      delay(10);
+      _delay(10);
     }
   }
 
@@ -422,11 +421,10 @@ bool Sodaq_WifiBee::waitForIP(const uint16_t timeMS)
   bool result = false;
 
   uint8_t status = 1;
-  uint16_t time = 0;
+  uint32_t maxTS = millis() + timeMS;
 
-  while ((time < timeMS) && (status == 1)) {
-    delay(10);
-    time += 10;
+  while ((millis() < maxTS) && (status == 1)) {
+    _delay(10);
     getStatus(status);
   }
 
@@ -473,4 +471,9 @@ String Sodaq_WifiBee::escapeString(const String input)
   }
 
   return output;
+}
+
+inline void Sodaq_WifiBee::_delay(uint32_t ms)
+{
+  delay(ms);
 }

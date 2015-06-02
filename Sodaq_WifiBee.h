@@ -99,6 +99,7 @@ private:
   bool waitForIP(const uint16_t timeMS);
 
   String escapeString(const String input);
+  inline void _delay(uint32_t ms);
 };
 
 #endif // SODAQ_WIFI_BEE_H_
