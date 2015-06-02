@@ -39,6 +39,7 @@
 #define DISCONNECT_PROMPT ".:Disconnected:."
 #define SENT_PROMPT ".:Data Sent:."
 #define RECEIVED_PROMPT ".:Data Received:."
+#define STATUS_PROMPT "\r\nStatus: "
 
 // Lua connection callback scripts
 #define CONNECT_CALLBACK "function(socket) print(\".:Connected:.\") end"
@@ -46,6 +47,7 @@
 #define DISCONNECT_CALLBACK "function(socket) print(\".:Disconnected:.\") end"
 #define SENT_CALLBACK "function(socket) print(\".:Data Sent:.\") end"
 #define RECEIVED_CALLBACK "function(socket, data) lastResponse=data lastSize=data:len() uart.write(0, \".:Data Received:.\\r\\n\", \"Length: \", tostring(data:len()), \"\\r\\n\", data, \"\\r\\n\") end"
+#define STATUS_CALLBACK "Status: "
 
 //Other constants
 #define RESPONSE_TIMEOUT 2000
@@ -222,6 +224,30 @@ void Sodaq_WifiBee::readForTime(const uint16_t timeMS)
   }
 }
 
+bool Sodaq_WifiBee::readChar(char& data, const uint16_t timeMS)
+{
+  if (!_dataStream) {
+    return false;
+  }
+
+  bool result = false;
+
+  uint16_t time = 0;
+  while ((time < timeMS) && (!result)) {
+    if (_dataStream->available()) {
+      data = _dataStream->read();
+      diagPrint(data);
+      result = true;
+    }
+    else {
+      time += 10;
+      delay(10);
+    }
+  }
+  
+  return result;
+}
+
 bool Sodaq_WifiBee::readTillPrompt(const String prompt, const uint16_t timeMS)
 {
   if (!_dataStream) {
@@ -366,6 +392,26 @@ bool Sodaq_WifiBee::disconnect()
 
   data = String("wifi.sta.disconnect()");
   return sendWaitForPrompt(data, LUA_PROMPT);
+}
+
+bool Sodaq_WifiBee::getStatus(uint8_t& status)
+{
+  bool result = false;
+  String data;
+  
+  data = String("print(\"") + STATUS_CALLBACK + "\" .. wifi.sta.status())";
+
+  if (sendWaitForPrompt(data, STATUS_PROMPT)) {
+    char statusCode;    
+    if (readChar(statusCode, RESPONSE_TIMEOUT)) {
+      if ((statusCode > 47) && (statusCode < 54)) { //characters 0..5
+        status = statusCode - 48;
+        result = true;
+      }
+    }
+  }
+
+  return result;
 }
 
 String Sodaq_WifiBee::escapeString(const String input)

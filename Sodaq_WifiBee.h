@@ -79,8 +79,9 @@ private:
 
   void flushInputStream();
   void readForTime(const uint16_t timeMS);
+  bool readChar(char& data, const uint16_t timeMS);
   bool readTillPrompt(const String prompt, const uint16_t timeMS);
-
+  
   void send(const String data);
   bool sendWaitForPrompt(const String data, const String prompt);
 
@@ -93,6 +94,8 @@ private:
 
   bool connect();
   bool disconnect();
+
+  bool getStatus(uint8_t& status);
 
   String escapeString(const String input);
 };
