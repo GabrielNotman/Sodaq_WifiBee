@@ -341,7 +341,8 @@ bool Sodaq_WifiBee::sendAsciiData(const String data)
     return false;
   }
 
-  String output = escapeString(data);
+  String output;
+  escapeString(data, output);
 
   _dataStream->print("wifiConn:send(\"");
   _dataStream->write((uint8_t*)output.c_str(), output.length());
@@ -457,13 +458,12 @@ bool Sodaq_WifiBee::waitForIP(const uint32_t timeMS)
   return result;
 }
 
-String Sodaq_WifiBee::escapeString(const String input)
+void Sodaq_WifiBee::escapeString(const String input, String& output)
 {
-  String output;
   size_t length = input.length();
 
   //Todo add other lua escape characters?
-  for (int i = 0; i < length; i++) {
+  for (size_t i = 0; i < length; i++) {
     switch (input[i]) {
       case '\r': output += "\\r";
         break;
@@ -472,8 +472,6 @@ String Sodaq_WifiBee::escapeString(const String input)
       default: output += (char)input[i];
     }
   }
-
-  return output;
 }
 
 inline void Sodaq_WifiBee::_delay(uint32_t ms)

@@ -99,7 +99,7 @@ private:
   bool getStatus(uint8_t& status);
   bool waitForIP(const uint32_t timeMS);
 
-  String escapeString(const String input);
+  void escapeString(const String input, String& output);
   inline void _delay(uint32_t ms);
 };
 
