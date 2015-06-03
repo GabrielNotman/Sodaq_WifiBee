@@ -54,6 +54,7 @@
 #define WIFI_CONNECT_TIMEOUT 4000
 #define SERVER_CONNECT_TIMEOUT 5000
 #define SERVER_DISCONNECT_TIMEOUT 2000
+#define WAKE_DELAY 1000
 
 // Other
 #define DEFAULT_BAUD 9600
@@ -76,8 +77,10 @@ void Sodaq_WifiBee::init(HardwareSerial& stream, const uint8_t dtrPin)
 {
   _dataStream = &stream;
   _dtrPin = dtrPin;
+
+  pinMode(_dtrPin, OUTPUT);
   
-  sleep();
+  off();
 }
 
 void Sodaq_WifiBee::connectionSettings(const String APN, const String username,
@@ -93,15 +96,17 @@ void Sodaq_WifiBee::setDiag(Stream& stream)
   _diagStream = &stream;
 }
 
-void Sodaq_WifiBee::sleep()
+void Sodaq_WifiBee::on()
 {
-
+  digitalWrite(_dtrPin, LOW);
+  readForTime(WAKE_DELAY);  
 }
 
-void Sodaq_WifiBee::wake()
+void Sodaq_WifiBee::off()
 {
-
+  digitalWrite(_dtrPin, HIGH);
 }
+
 
 // HTTP methods
 bool Sodaq_WifiBee::HTTPAction(const String server, const uint16_t port,
@@ -168,17 +173,21 @@ bool Sodaq_WifiBee::closeUDP()
 
 bool Sodaq_WifiBee::readResponse(uint8_t& buffer, const size_t size)
 {
+  on();
   //Send command to dump 
   //Read size-1 or response size
+  off();
   return true;
 }
 
 bool Sodaq_WifiBee::readHTTPResponse(uint8_t& buffer, const size_t size, 
   uint16_t& httpCode)
 {
+  on();
   //Send command to dump
   //Read until empty line
   //Save the rest until buffer is full or response is complete
+  off();
   return true;
 }
 
@@ -292,7 +301,7 @@ bool Sodaq_WifiBee::sendWaitForPrompt(const String data, const String prompt,
 bool Sodaq_WifiBee::openConnection(const String server, const uint16_t port,
   const String type)
 {
-  wake();
+  on();
 
   bool result = false;
   
@@ -363,7 +372,7 @@ bool Sodaq_WifiBee::closeConnection()
   data = String("wifiConn:close()");
   bool result = sendWaitForPrompt(data, DISCONNECT_PROMPT, SERVER_DISCONNECT_TIMEOUT);
 
-  sleep();
+  off();
 
   return result;
 }

@@ -34,8 +34,8 @@ public:
   void connectionSettings(const String APN, const String username, const String password);
   void setDiag(Stream& stream);
 
-  void sleep();
-  void wake();
+  void on();
+  void off();
 
   // HTTP methods
   // These use HTTP/1.1 and add headers for HOST (all) and Content-Length (except HTTPGet())
