@@ -110,10 +110,55 @@ void Sodaq_WifiBee::off()
 
 // HTTP methods
 bool Sodaq_WifiBee::HTTPAction(const String server, const uint16_t port,
-  const String method, const String location, const String headers,
-  const String body, uint16_t& httpCode)
+  const String method, const String location, String headers,
+  String body, uint16_t& httpCode)
 {
-  return true;
+  headers.trim();
+  body.trim();
+
+  bool result = true;
+
+  //We only care if we can open the connection
+  result = openConnection(server, port, TCP_CONNECTION);
+
+  if (result) {
+    _dataStream->print("wifiConn:send(\"");
+  
+    _dataStream->print(method); 
+    _dataStream->print(" ");
+    _dataStream->print(location);
+    _dataStream->print(" HTTP/1.1\\r\\n");
+
+    _dataStream->print("HOST: ");
+    _dataStream->print(server);
+    _dataStream->print(":");
+    _dataStream->print(port);
+    _dataStream->print("\\r\\n");
+
+    _dataStream->print("Content-Length: ");
+    _dataStream->print(body.length());
+    _dataStream->print("\\r\\n");
+
+    _dataStream->print(headers);
+    _dataStream->print("\\r\\n");
+
+    _dataStream->print(body);
+
+    _dataStream->println("\")");
+  }
+
+  // Wait till we hear that it was sent
+  if (result) {
+    result=readTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
+  }
+
+  // need to read response code
+
+  // The connection might have closed automatically
+  // Or it failed to open
+  closeConnection();
+
+  return result;
 }
 
 bool Sodaq_WifiBee::HTTPGet(const String server, const uint16_t port,
