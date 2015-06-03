@@ -72,19 +72,11 @@ Sodaq_WifiBee::Sodaq_WifiBee()
   _diagStream = NULL;
 }
 
-void Sodaq_WifiBee::init(HardwareSerial& stream, const uint32_t baudrate)
+void Sodaq_WifiBee::init(HardwareSerial& stream, const uint8_t dtrPin)
 {
   _dataStream = &stream;
-  _dataStream->begin(DEFAULT_BAUD);
-
-  //We have to do this everytime as the settings persists until powered down
-  //Send the command to change the rate on the bee
-  String data = String("uart.setup(0,") + String(baudrate, DEC) + ",8,0,1,1)";
-  sendWaitForPrompt(data, LUA_PROMPT, RESPONSE_TIMEOUT);
+  _dtrPin = dtrPin;
   
-  //Start the port again at new rate
-  _dataStream->begin(baudrate);
-    
   sleep();
 }
 

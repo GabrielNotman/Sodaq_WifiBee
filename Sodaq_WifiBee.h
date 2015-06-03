@@ -23,16 +23,14 @@
 #ifndef SODAQ_WIFI_BEE_H_
 #define SODAQ_WIFI_BEE_H_
 
-//#include <stdint.h>
 #include <Arduino.h>
-#include <HardwareSerial.h>
 #include <Stream.h>
 
 class Sodaq_WifiBee
 {
 public:
   Sodaq_WifiBee();
-  void init(HardwareSerial& stream, const uint32_t baudrate);
+  void init(HardwareSerial& stream, const uint8_t dtrPin);
   void connectionSettings(const String APN, const String username, const String password);
   void setDiag(Stream& stream);
 
@@ -74,8 +72,9 @@ private:
   String _username;
   String _password;
 
-  HardwareSerial* _dataStream;
+  Stream* _dataStream;
   Stream* _diagStream;
+  uint8_t _dtrPin;
 
   void flushInputStream();
   int readForTime(const uint32_t timeMS);
