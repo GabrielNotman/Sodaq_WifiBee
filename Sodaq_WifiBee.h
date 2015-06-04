@@ -63,8 +63,8 @@ public:
   bool closeUDP();
 
   // Read back
-  bool readResponse(uint8_t& buffer, const size_t size);
-  bool readHTTPResponse(uint8_t& buffer, const size_t size, 
+  bool readResponse(uint8_t* buffer, const size_t size);
+  bool readHTTPResponse(uint8_t* buffer, const size_t size, 
     uint16_t& httpCode);
 
 private:
