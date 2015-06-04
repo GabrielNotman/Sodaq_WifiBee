@@ -32,6 +32,8 @@
 #define diagPrintLn(...)
 #endif
 
+#define send(...) { if (_dataStream) _dataStream->print(__VA_ARGS__); }
+
 // Lua prompts
 #define LUA_PROMPT "\r\n> "
 #define CONNECT_PROMPT "|C|"
@@ -134,11 +136,11 @@ bool Sodaq_WifiBee::HTTPAction(const String server, const uint16_t port,
     send("HOST: ");
     send(server);
     send(":");
-    send(String(port, DEC));
+    send(port);
     send("\\r\\n");
 
     send("Content-Length: ");
-    send(String(body.length(), DEC));
+    send(body.length());
     send("\\r\\n");
 
     sendEscaped(headers);
@@ -189,7 +191,7 @@ bool Sodaq_WifiBee::HTTPGet(const String server, const uint16_t port,
     send("HOST: ");
     send(server);
     send(":");
-    send(String(port, DEC));
+    send(port);
     send("\\r\\n");
 
     sendEscaped(headers);
@@ -239,11 +241,11 @@ bool Sodaq_WifiBee::HTTPPost(const String server, const uint16_t port,
     send("HOST: ");
     send(server);
     send(":");
-    send(String(port, DEC));
+    send(port);
     send("\\r\\n");
 
     send("Content-Length: ");
-    send(String(body.length(), DEC));
+    send(body.length());
     send("\\r\\n");
 
     sendEscaped(headers);
@@ -519,20 +521,6 @@ bool Sodaq_WifiBee::storeTillPrompt(uint8_t* buffer, const size_t size, size_t& 
   return result;
 }
 
-inline void Sodaq_WifiBee::send(const String data)
-{
-  if (_dataStream) {
-    _dataStream->print(data);
-  }
-}
-
-inline void Sodaq_WifiBee::sendChar(const char data)
-{
-  if (_dataStream) {
-    _dataStream->print(data);
-  }
-}
-
 void Sodaq_WifiBee::sendEscaped(const String data)
 {
   size_t length = data.length();
@@ -544,7 +532,7 @@ void Sodaq_WifiBee::sendEscaped(const String data)
         break;
       case '\n': send("\\n");
         break;
-      default: sendChar(data[i]);
+      default: send(data[i]);
     }
   }
 }
@@ -601,7 +589,7 @@ bool Sodaq_WifiBee::openConnection(const String server, const uint16_t port,
     readTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
 
     send("wifiConn:connect(");
-    send(String(port, DEC));
+    send(port);
     send(",\"");
     send(server);
     send("\")\r\n");
