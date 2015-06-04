@@ -40,14 +40,14 @@ public:
   // HTTP methods
   // These use HTTP/1.1 and add headers for HOST (all) and Content-Length (except HTTPGet())
   bool HTTPAction(const String server, const uint16_t port,
-    const String method, const String location, String headers,
-    String body, uint16_t& httpCode);
+    const String method, const String location, String const headers,
+    const String body, uint16_t& httpCode);
 
   bool HTTPGet(const String server, const uint16_t port,
-    const String location, String headers, uint16_t& httpCode);
+    const String location, const String headers, uint16_t& httpCode);
 
   bool HTTPPost(const String server, const uint16_t port,
-    const String location, String headers, String body,
+    const String location, const String headers, const String body,
     uint16_t& httpCode);
 
   // TCP methods

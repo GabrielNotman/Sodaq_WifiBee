@@ -115,13 +115,10 @@ void Sodaq_WifiBee::off()
 
 // HTTP methods
 bool Sodaq_WifiBee::HTTPAction(const String server, const uint16_t port,
-  const String method, const String location, String headers,
-  String body, uint16_t& httpCode)
+  const String method, const String location, const String headers,
+  const String body, uint16_t& httpCode)
 {
-  headers.trim();
-  body.trim();
-
-  bool result = true;
+  bool result;
 
   // Open the connection
   result = openConnection(server, port, TCP_CONNECTION);
