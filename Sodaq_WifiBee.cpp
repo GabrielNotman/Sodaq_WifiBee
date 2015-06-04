@@ -46,7 +46,7 @@
 #define RECONNECT_CALLBACK "function(socket) print(\".:Reconnected:.\") end"
 #define DISCONNECT_CALLBACK "function(socket) print(\".:Disconnected:.\") end"
 #define SENT_CALLBACK "function(socket) print(\".:Data Sent:.\") end"
-#define RECEIVED_CALLBACK "function(socket, data) lastResponse=data lastSize=data:len() uart.write(0, \".:Data Received:.\\r\\n\", \"Length: \", tostring(data:len()), \"\\r\\n\", data, \"\\r\\n\") end"
+#define RECEIVED_CALLBACK "function(socket, data) file.open(\"lastData.txt\", \"w+\") file.write(data) file.flush() file.close() uart.write(0, \".:Data Received:.\\r\\n\") end"
 #define STATUS_CALLBACK "Status: "
 
 // Timeout constants
@@ -79,7 +79,10 @@ void Sodaq_WifiBee::init(HardwareSerial& stream, const uint8_t dtrPin)
   _dtrPin = dtrPin;
 
   pinMode(_dtrPin, OUTPUT);
-  
+
+  on();
+  diagPrintLn("\r\nDeleting old data..\r\n");
+  sendWaitForPrompt("file.remove(\"lastData.txt\")\r\n", LUA_PROMPT, RESPONSE_TIMEOUT);
   off();
 }
 
@@ -98,12 +101,14 @@ void Sodaq_WifiBee::setDiag(Stream& stream)
 
 void Sodaq_WifiBee::on()
 {
+  diagPrintLn("\r\nPower ON");
   digitalWrite(_dtrPin, LOW);
   readForTime(WAKE_DELAY);  
 }
 
 void Sodaq_WifiBee::off()
 {
+  diagPrintLn("\r\nPower OFF");
   digitalWrite(_dtrPin, HIGH);
 }
 
@@ -368,7 +373,7 @@ void Sodaq_WifiBee::sendBinary(const uint8_t* data, const size_t length)
 bool Sodaq_WifiBee::sendWaitForPrompt(const String data, const String prompt,
   const uint32_t timeMS)
 {
-  flushInputStream();
+  readForTime(100);
   send(data);
   send("\r\n");
   return readTillPrompt(prompt, timeMS);
@@ -481,9 +486,9 @@ bool Sodaq_WifiBee::getStatus(uint8_t& status)
         result = true;
       }
     }
+    flushInputStream();
   }
-  flushInputStream();
-
+  
   return result;
 }
 
