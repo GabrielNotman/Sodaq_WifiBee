@@ -39,7 +39,7 @@
 #define DISCONNECT_PROMPT "|DC|"
 #define SENT_PROMPT "|DS|"
 #define RECEIVED_PROMPT "|DR|"
-#define STATUS_PROMPT "\r\nStatus: "
+#define STATUS_PROMPT "|STS|"
 
 // Lua connection callback scripts
 #define CONNECT_CALLBACK "function(s) print(\"|C|\") end"
@@ -47,7 +47,7 @@
 #define DISCONNECT_CALLBACK "function(s) print(\"|DC|\") end"
 #define SENT_CALLBACK "function(s) print(\"|DS|\") end"
 #define RECEIVED_CALLBACK "function(s, d) file.open(\"lastData.txt\", \"w+\") file.write(d) file.flush() file.close() uart.write(0, \"|DR|\") uart.write(0, string.sub(d,10,13), \"\\r\\n\") end"
-#define STATUS_CALLBACK "Status: "
+#define STATUS_CALLBACK "print(\"|\" .. \"STS|\" .. wifi.sta.status())"
 
 // Timeout constants
 #define RESPONSE_TIMEOUT 2000
@@ -656,19 +656,24 @@ bool Sodaq_WifiBee::disconnect()
 
 bool Sodaq_WifiBee::getStatus(uint8_t& status)
 {
-  bool result = false;
-  String data;
+  bool result;
 
-  data = String("print(\"") + STATUS_CALLBACK + "\" .. wifi.sta.status())";
+  result = sendWaitForPrompt(STATUS_CALLBACK, STATUS_PROMPT, RESPONSE_TIMEOUT);
+  
+  char statusCode;
+  
+  if (result) {
+    result = readChar(statusCode, RESPONSE_TIMEOUT);
+  }
 
-  if (sendWaitForPrompt(data, STATUS_PROMPT, RESPONSE_TIMEOUT)) {
-    char statusCode;    
-    if (readChar(statusCode, RESPONSE_TIMEOUT)) {
-      if ((statusCode > 47) && (statusCode < 54)) { //characters 0..5
-        status = statusCode - 48;
-        result = true;
-      }
+  if (result) {
+    if ((statusCode > 47) && (statusCode < 54)) { //characters 0..5
+      status = statusCode - 48;
     }
+    else {
+      result = false;
+    }
+
     flushInputStream();
   }
   
