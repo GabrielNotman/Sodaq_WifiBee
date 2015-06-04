@@ -285,12 +285,12 @@ bool Sodaq_WifiBee::openTCP(const String server, uint16_t port)
 
 bool Sodaq_WifiBee::sendTCPAscii(const String data) 
 {
-  return sendAsciiData(data);
+  return transmitAsciiData(data);
 }
 
 bool Sodaq_WifiBee::sendTCPBinary(const uint8_t* data, const size_t length)
 {
-  return sendBinaryData(data, length);
+  return transmitBinaryData(data, length);
 }
 
 bool Sodaq_WifiBee::closeTCP()
@@ -306,12 +306,12 @@ bool Sodaq_WifiBee::openUDP(const String server, uint16_t port)
 
 bool Sodaq_WifiBee::sendUDPAscii(const String data)
 {
-  return sendAsciiData(data);
+  return transmitAsciiData(data);
 }
 
 bool Sodaq_WifiBee::sendUDPBinary(const uint8_t* data, const size_t length)
 {
-  return sendBinaryData(data, length);
+  return transmitBinaryData(data, length);
 }
 
 bool Sodaq_WifiBee::closeUDP()
@@ -602,7 +602,7 @@ bool Sodaq_WifiBee::openConnection(const String server, const uint16_t port,
   return result;
 }
 
-bool Sodaq_WifiBee::sendAsciiData(const String data)
+bool Sodaq_WifiBee::transmitAsciiData(const String data)
 {
   send("wifiConn:send(\"");
   sendEscaped(data);
@@ -611,7 +611,7 @@ bool Sodaq_WifiBee::sendAsciiData(const String data)
   return readTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
 }
 
-bool Sodaq_WifiBee::sendBinaryData(const uint8_t* data, const size_t length)
+bool Sodaq_WifiBee::transmitBinaryData(const uint8_t* data, const size_t length)
 {
   send("wifiConn:send(\"");
   sendBinary(data, length);

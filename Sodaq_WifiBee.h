@@ -92,8 +92,8 @@ private:
   bool openConnection(const String server, const uint16_t port,
     const String type);
   
-  bool sendAsciiData(const String data);
-  bool sendBinaryData(const uint8_t* data, const size_t length);
+  bool transmitAsciiData(const String data);
+  bool transmitBinaryData(const uint8_t* data, const size_t length);
   bool closeConnection();
 
   bool connect();
