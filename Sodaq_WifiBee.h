@@ -82,14 +82,13 @@ private:
   int readForTime(const uint32_t timeMS);
   bool readChar(char& data, const uint32_t timeMS);
   bool readTillPrompt(const String prompt, const uint32_t timeMS);
+  
   bool storeTillPrompt(uint8_t* buffer, const size_t size, size_t& bytesStored, const String prompt, const uint32_t timeMS);
   
   inline void send(const String data);
   inline void sendChar(const char data);
   void sendEscaped(const String data);
   void sendBinary(const uint8_t* data, const size_t length);
-  bool sendWaitForPrompt(const String data, const String prompt,
-    const uint32_t timeMS);
 
   bool openConnection(const String server, const uint16_t port,
     const String type);
