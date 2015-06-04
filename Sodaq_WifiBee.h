@@ -32,8 +32,10 @@ public:
   Sodaq_WifiBee();
   void init(Stream& stream, const uint8_t dtrPin);
 
-  void connectionSettings(const String APN, const String username, const String password);
-  void connectionSettings(const char* APN, const char* username, const char* password);
+  void connectionSettings(const String APN, const String username,
+      const String password);
+  void connectionSettings(const char* APN, const char* username,
+      const char* password);
 
   void setDiag(Stream& stream);
 
@@ -43,46 +45,58 @@ public:
   void off();
 
   // HTTP methods
-  // These use HTTP/1.1 and add headers for HOST (all) and Content-Length (except HTTPGet())
-  bool HTTPAction(const String server, const uint16_t port,
-    const String method, const String location, String const headers,
-    const String body, uint16_t& httpCode);
-  bool HTTPAction(const char* server, const uint16_t port,
-    const char* method, const char* location, const char* headers,
-    const char* body, uint16_t& httpCode);
-  
-  bool HTTPGet(const String server, const uint16_t port,
-    const String location, const String headers, uint16_t& httpCode);
-  bool HTTPGet(const char* server, const uint16_t port,
-    const char* location, const char* headers, uint16_t& httpCode);
-  
-  bool HTTPPost(const String server, const uint16_t port,
-    const String location, const String headers, const String body,
-    uint16_t& httpCode);
-  bool HTTPPost(const char* server, const uint16_t port,
-    const char* location, const char* headers, const char* body,
-    uint16_t& httpCode);
+  // These use HTTP/1.1 and add headers for HOST (all)
+  // and Content-Length (except HTTPGet())
+  bool HTTPAction(const String server, const uint16_t port, const String method,
+      const String location, String const headers, const String body,
+      uint16_t& httpCode);
+
+  bool HTTPAction(const char* server, const uint16_t port, const char* method,
+      const char* location, const char* headers, const char* body,
+      uint16_t& httpCode);
+
+  bool HTTPGet(const String server, const uint16_t port, const String location,
+      const String headers, uint16_t& httpCode);
+
+  bool HTTPGet(const char* server, const uint16_t port, const char* location,
+      const char* headers, uint16_t& httpCode);
+
+  bool HTTPPost(const String server, const uint16_t port, const String location,
+      const String headers, const String body, uint16_t& httpCode);
+
+  bool HTTPPost(const char* server, const uint16_t port, const char* location,
+      const char* headers, const char* body, uint16_t& httpCode);
 
   // TCP methods
   bool openTCP(const String server, uint16_t port);
+
   bool openTCP(const char* server, uint16_t port);
+
   bool sendTCPAscii(const String data);
+
   bool sendTCPAscii(const char* data);
+
   bool sendTCPBinary(const uint8_t* data, const size_t length);
+
   bool closeTCP();
 
   // UDP methods
   bool openUDP(const String server, uint16_t port);
+
   bool openUDP(const char* server, uint16_t port);
+
   bool sendUDPAscii(const String data);
+
   bool sendUDPAscii(const char* data);
+
   bool sendUDPBinary(const uint8_t* data, const size_t length);
+
   bool closeUDP();
 
   // Read back
   bool readResponse(uint8_t* buffer, const size_t size);
-  bool readHTTPResponse(uint8_t* buffer, const size_t size, 
-    uint16_t& httpCode);
+
+  bool readHTTPResponse(uint8_t* buffer, const size_t size, uint16_t& httpCode);
 
 private:
   String _APN;
@@ -94,26 +108,35 @@ private:
   uint8_t _dtrPin;
 
   void flushInputStream();
+
   int readForTime(const uint32_t timeMS);
+
   bool readChar(char& data, const uint32_t timeMS);
+
   bool readTillPrompt(const char* prompt, const uint32_t timeMS);
-  
-  bool storeTillPrompt(uint8_t* buffer, const size_t size, size_t& bytesStored, const char* prompt, const uint32_t timeMS);
-  
+
+  bool storeTillPrompt(uint8_t* buffer, const size_t size, size_t& bytesStored,
+      const char* prompt, const uint32_t timeMS);
+
   void sendEscaped(const char* data);
+
   void sendBinary(const uint8_t* data, const size_t length);
 
   bool openConnection(const char* server, const uint16_t port,
-    const char* type);
-  
-  bool transmitAsciiData(const char* data);
-  bool transmitBinaryData(const uint8_t* data, const size_t length);
+      const char* type);
+
   bool closeConnection();
 
+  bool transmitAsciiData(const char* data);
+
+  bool transmitBinaryData(const uint8_t* data, const size_t length);
+
   bool connect();
+
   bool disconnect();
 
   bool getStatus(uint8_t& status);
+
   bool waitForIP(const uint32_t timeMS);
 
   bool parseHTTPResponse(uint16_t& httpCode);
