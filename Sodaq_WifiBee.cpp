@@ -142,7 +142,7 @@ bool Sodaq_WifiBee::HTTPAction(const String server, const uint16_t port,
     send("\\r\\n");
 
     sendEscaped(headers);
-    send("\\r\\n");
+    send("\\r\\n\\r\\n");
 
     sendEscaped(body);
 
@@ -174,14 +174,106 @@ bool Sodaq_WifiBee::HTTPAction(const String server, const uint16_t port,
 bool Sodaq_WifiBee::HTTPGet(const String server, const uint16_t port,
   const String location, const String headers, uint16_t& httpCode)
 {
-  return true;
+  bool result;
+
+  // Open the connection
+  result = openConnection(server, port, TCP_CONNECTION);
+
+  if (result) {
+    send("wifiConn:send(\"");
+
+    send("GET ");
+    send(location);
+    send(" HTTP/1.1\\r\\n");
+
+    send("HOST: ");
+    send(server);
+    send(":");
+    send(String(port, DEC));
+    send("\\r\\n");
+
+    sendEscaped(headers);
+    send("\\r\\n\\r\\n");
+
+    send("\")\r\n");
+  }
+
+  // Wait till we hear that it was sent
+  if (result) {
+    result = readTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
+  }
+
+  // Wait till we get the data received prompt
+  if (result) {
+    result = readTillPrompt(RECEIVED_PROMPT, RESPONSE_TIMEOUT);
+  }
+
+  // Attempt to read the response code  
+  if (result) {
+    result = parseHTTPResponse(httpCode);
+  }
+
+  // The connection might have closed automatically
+  // Or it failed to open
+  closeConnection();
+
+  return result;
 }
 
 bool Sodaq_WifiBee::HTTPPost(const String server, const uint16_t port,
   const String location, const String headers, const String body,
   uint16_t& httpCode)
 {
-  return true;
+  bool result;
+
+  // Open the connection
+  result = openConnection(server, port, TCP_CONNECTION);
+
+  if (result) {
+    send("wifiConn:send(\"");
+
+    send("POST ");
+    send(location);
+    send(" HTTP/1.1\\r\\n");
+
+    send("HOST: ");
+    send(server);
+    send(":");
+    send(String(port, DEC));
+    send("\\r\\n");
+
+    send("Content-Length: ");
+    send(String(body.length(), DEC));
+    send("\\r\\n");
+
+    sendEscaped(headers);
+    send("\\r\\n\\r\\n");
+
+    sendEscaped(body);
+
+    send("\")\r\n");
+  }
+
+  // Wait till we hear that it was sent
+  if (result) {
+    result = readTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
+  }
+
+  // Wait till we get the data received prompt
+  if (result) {
+    result = readTillPrompt(RECEIVED_PROMPT, RESPONSE_TIMEOUT);
+  }
+
+  // Attempt to read the response code  
+  if (result) {
+    result = parseHTTPResponse(httpCode);
+  }
+
+  // The connection might have closed automatically
+  // Or it failed to open
+  closeConnection();
+
+  return result;
 }
 
 // TCP methods
