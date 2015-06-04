@@ -81,7 +81,10 @@ private:
   bool readChar(char& data, const uint32_t timeMS);
   bool readTillPrompt(const String prompt, const uint32_t timeMS);
   
-  void send(const String data);
+  inline void send(const String data);
+  inline void sendChar(const char data);
+  void sendEscaped(const String data);
+  void sendBinary(const uint8_t* data, const size_t length);
   bool sendWaitForPrompt(const String data, const String prompt,
     const uint32_t timeMS);
 
@@ -98,7 +101,6 @@ private:
   bool getStatus(uint8_t& status);
   bool waitForIP(const uint32_t timeMS);
 
-  void escapeString(const String input, String& output);
   inline void _delay(uint32_t ms);
 };
 

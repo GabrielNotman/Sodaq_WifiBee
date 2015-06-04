@@ -122,29 +122,29 @@ bool Sodaq_WifiBee::HTTPAction(const String server, const uint16_t port,
   result = openConnection(server, port, TCP_CONNECTION);
 
   if (result) {
-    _dataStream->print("wifiConn:send(\"");
+    send("wifiConn:send(\"");
   
-    _dataStream->print(method); 
-    _dataStream->print(" ");
-    _dataStream->print(location);
-    _dataStream->print(" HTTP/1.1\\r\\n");
+    send(method);
+    send(" ");
+    send(location);
+    send(" HTTP/1.1\\r\\n");
 
-    _dataStream->print("HOST: ");
-    _dataStream->print(server);
-    _dataStream->print(":");
-    _dataStream->print(port);
-    _dataStream->print("\\r\\n");
+    send("HOST: ");
+    send(server);
+    send(":");
+    send(String(port, DEC));
+    send("\\r\\n");
 
-    _dataStream->print("Content-Length: ");
-    _dataStream->print(body.length());
-    _dataStream->print("\\r\\n");
+    send("Content-Length: ");
+    send(String(body.length(), DEC));
+    send("\\r\\n");
 
-    _dataStream->print(headers);
-    _dataStream->print("\\r\\n");
+    sendEscaped(headers);
+    send("\\r\\n");
 
-    _dataStream->print(body);
+    sendEscaped(body);
 
-    _dataStream->println("\")");
+    send("\")\r\n");
   }
 
   // Wait till we hear that it was sent
@@ -328,10 +328,40 @@ bool Sodaq_WifiBee::readTillPrompt(const String prompt, const uint32_t timeMS)
   return result; 
 }
 
-void Sodaq_WifiBee::send(const String data)
+inline void Sodaq_WifiBee::send(const String data)
 {
   if (_dataStream) {
-    _dataStream->println(data);
+    _dataStream->print(data);
+  }
+}
+
+inline void Sodaq_WifiBee::sendChar(const char data)
+{
+  if (_dataStream) {
+    _dataStream->print(data);
+  }
+}
+
+void Sodaq_WifiBee::sendEscaped(const String data)
+{
+  size_t length = data.length();
+
+  //Todo add other lua escape characters?
+  for (size_t i = 0; i < length; i++) {
+    switch (data[i]) {
+      case '\r': send("\\r");
+        break;
+      case '\n': send("\\n");
+        break;
+      default: sendChar(data[i]);
+    }
+  }
+}
+
+void Sodaq_WifiBee::sendBinary(const uint8_t* data, const size_t length)
+{
+  if (_dataStream) {
+    _dataStream->write(data, length);
   }
 }
 
@@ -340,6 +370,7 @@ bool Sodaq_WifiBee::sendWaitForPrompt(const String data, const String prompt,
 {
   flushInputStream();
   send(data);
+  send("\r\n");
   return readTillPrompt(prompt, timeMS);
 }
 
@@ -383,29 +414,18 @@ bool Sodaq_WifiBee::openConnection(const String server, const uint16_t port,
 
 bool Sodaq_WifiBee::sendAsciiData(const String data)
 {
-  if (!_dataStream) {
-    return false;
-  }
-
-  String output;
-  escapeString(data, output);
-
-  _dataStream->print("wifiConn:send(\"");
-  _dataStream->write((uint8_t*)output.c_str(), output.length());
-  _dataStream->println("\")");
+  send("wifiConn:send(\"");
+  sendEscaped(data);
+  send("\")\r\n");
 
   return readTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
 }
 
 bool Sodaq_WifiBee::sendBinaryData(const uint8_t* data, const size_t length)
 {
-  if (!_dataStream) {
-    return false;
-  }
-
-  _dataStream->print("wifiConn:send(\"");
-  _dataStream->write(data, length);
-  _dataStream->println("\")");
+  send("wifiConn:send(\"");
+  sendBinary(data, length);
+  send("\")\r\n");
 
   return readTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
 }
@@ -462,7 +482,8 @@ bool Sodaq_WifiBee::getStatus(uint8_t& status)
       }
     }
   }
-  
+  flushInputStream();
+
   return result;
 }
 
@@ -502,22 +523,6 @@ bool Sodaq_WifiBee::waitForIP(const uint32_t timeMS)
   }
 
   return result;
-}
-
-void Sodaq_WifiBee::escapeString(const String input, String& output)
-{
-  size_t length = input.length();
-
-  //Todo add other lua escape characters?
-  for (size_t i = 0; i < length; i++) {
-    switch (input[i]) {
-      case '\r': output += "\\r";
-        break;
-      case '\n': output += "\\n"; 
-        break;
-      default: output += (char)input[i];
-    }
-  }
 }
 
 inline void Sodaq_WifiBee::_delay(uint32_t ms)
