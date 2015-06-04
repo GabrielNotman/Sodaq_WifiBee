@@ -567,9 +567,11 @@ bool Sodaq_WifiBee::openConnection(const String server, const uint16_t port,
 {
   on();
 
-  bool result = false;
+  bool result;
   
-  if (connect()) {
+  result = connect(); 
+
+  if (result) {
     String data;
 
     //Create the connection object
@@ -720,7 +722,7 @@ bool Sodaq_WifiBee::waitForIP(const uint32_t timeMS)
 
 bool Sodaq_WifiBee::parseHTTPResponse(uint16_t& httpCode)
 {
-  bool result = false;
+  bool result;
 
   uint8_t buffer[4];
   size_t stored;
