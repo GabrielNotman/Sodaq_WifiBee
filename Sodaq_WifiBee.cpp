@@ -34,19 +34,19 @@
 
 // Lua prompts
 #define LUA_PROMPT "\r\n> "
-#define CONNECT_PROMPT ".:Connected:."
-#define RECONNECT_PROMPT ".:Reconnected:."
-#define DISCONNECT_PROMPT ".:Disconnected:."
-#define SENT_PROMPT ".:Data Sent:."
-#define RECEIVED_PROMPT ".:Data Received:."
+#define CONNECT_PROMPT "|C|"
+#define RECONNECT_PROMPT "|RC|"
+#define DISCONNECT_PROMPT "|DC|"
+#define SENT_PROMPT "|DS|"
+#define RECEIVED_PROMPT "|DR|"
 #define STATUS_PROMPT "\r\nStatus: "
 
 // Lua connection callback scripts
-#define CONNECT_CALLBACK "function(socket) print(\".:Connected:.\") end"
-#define RECONNECT_CALLBACK "function(socket) print(\".:Reconnected:.\") end"
-#define DISCONNECT_CALLBACK "function(socket) print(\".:Disconnected:.\") end"
-#define SENT_CALLBACK "function(socket) print(\".:Data Sent:.\") end"
-#define RECEIVED_CALLBACK "function(socket, data) file.open(\"lastData.txt\", \"w+\") file.write(data) file.flush() file.close() uart.write(0, \".:Data Received:.\\r\\n\") end"
+#define CONNECT_CALLBACK "function(s) print(\"|C|\") end"
+#define RECONNECT_CALLBACK "function(s) print(\"|RC|\") end"
+#define DISCONNECT_CALLBACK "function(s) print(\"|DC|\") end"
+#define SENT_CALLBACK "function(s) print(\"|DS|\") end"
+#define RECEIVED_CALLBACK "function(s, d) file.open(\"lastData.txt\", \"w+\") file.write(d) file.flush() file.close() uart.write(0, \"|DR| \") uart.write(0, string.sub(d,10,13), \"\\r\\n\") end"
 #define STATUS_CALLBACK "Status: "
 
 // Timeout constants
