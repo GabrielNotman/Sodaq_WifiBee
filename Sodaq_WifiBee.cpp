@@ -46,7 +46,7 @@
 #define RECONNECT_CALLBACK "function(s) print(\"|RC|\") end"
 #define DISCONNECT_CALLBACK "function(s) print(\"|DC|\") end"
 #define SENT_CALLBACK "function(s) print(\"|DS|\") end"
-#define RECEIVED_CALLBACK "function(s, d) file.open(\"lastData.txt\", \"w+\") file.write(d) file.flush() file.close() uart.write(0, \"|DR|\") uart.write(0, string.sub(d,10,13), \"\\r\\n\") end"
+#define RECEIVED_CALLBACK "function(s, d) file.open(\"lastData.txt\", \"w+\") file.write(d) file.flush() file.close() uart.write(0, \"|DR|\") uart.write(0, string.sub(d,10,13), \" \\r\\n\") end"
 #define STATUS_CALLBACK "print(\"|\" .. \"STS|\" .. wifi.sta.status())"
 
 // Timeout constants
@@ -56,13 +56,6 @@
 #define SERVER_DISCONNECT_TIMEOUT 2000
 #define READBACK_TIMEOUT 2500
 #define WAKE_DELAY 1000
-
-// Other
-#define DEFAULT_BAUD 9600
-
-// Lua constants for each connection type
-#define TCP_CONNECTION "net.TCP"
-#define UDP_CONNECTION "net.UDP"
 
 Sodaq_WifiBee::Sodaq_WifiBee()
 {
@@ -127,7 +120,7 @@ bool Sodaq_WifiBee::HTTPAction(const String server, const uint16_t port,
   bool result;
 
   // Open the connection
-  result = openConnection(server, port, TCP_CONNECTION);
+  result = openConnection(server, port, "net.TCP");
 
   if (result) {
     send("wifiConn:send(\"");
@@ -183,7 +176,7 @@ bool Sodaq_WifiBee::HTTPGet(const String server, const uint16_t port,
   bool result;
 
   // Open the connection
-  result = openConnection(server, port, TCP_CONNECTION);
+  result = openConnection(server, port, "net.TCP");
 
   if (result) {
     send("wifiConn:send(\"");
@@ -233,7 +226,7 @@ bool Sodaq_WifiBee::HTTPPost(const String server, const uint16_t port,
   bool result;
 
   // Open the connection
-  result = openConnection(server, port, TCP_CONNECTION);
+  result = openConnection(server, port, "net.TCP");
 
   if (result) {
     send("wifiConn:send(\"");
@@ -285,7 +278,7 @@ bool Sodaq_WifiBee::HTTPPost(const String server, const uint16_t port,
 // TCP methods
 bool Sodaq_WifiBee::openTCP(const String server, uint16_t port)
 {
-  return openConnection(server, port, TCP_CONNECTION);
+  return openConnection(server, port, "net.TCP");
 }
 
 bool Sodaq_WifiBee::sendTCPAscii(const String data) 
@@ -306,7 +299,7 @@ bool Sodaq_WifiBee::closeTCP()
 // UDP methods
 bool Sodaq_WifiBee::openUDP(const String server, uint16_t port)
 {
-  return openConnection(server, port, UDP_CONNECTION);
+  return openConnection(server, port, "net.UDP");
 }
 
 bool Sodaq_WifiBee::sendUDPAscii(const String data)
