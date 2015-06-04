@@ -46,7 +46,7 @@
 #define RECONNECT_CALLBACK "function(s) print(\"|RC|\") end"
 #define DISCONNECT_CALLBACK "function(s) print(\"|DC|\") end"
 #define SENT_CALLBACK "function(s) print(\"|DS|\") end"
-#define RECEIVED_CALLBACK "function(s, d) file.open(\"lastData.txt\", \"w+\") file.write(d) file.flush() file.close() uart.write(0, \"|DR| \") uart.write(0, string.sub(d,10,13), \"\\r\\n\") end"
+#define RECEIVED_CALLBACK "function(s, d) file.open(\"lastData.txt\", \"w+\") file.write(d) file.flush() file.close() uart.write(0, \"|DR|\") uart.write(0, string.sub(d,10,13), \"\\r\\n\") end"
 #define STATUS_CALLBACK "Status: "
 
 // Timeout constants
@@ -123,7 +123,7 @@ bool Sodaq_WifiBee::HTTPAction(const String server, const uint16_t port,
 
   bool result = true;
 
-  //We only care if we can open the connection
+  // Open the connection
   result = openConnection(server, port, TCP_CONNECTION);
 
   if (result) {
@@ -157,7 +157,15 @@ bool Sodaq_WifiBee::HTTPAction(const String server, const uint16_t port,
     result=readTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
   }
 
-  // need to read response code
+  // Wait till we get the data received prompt
+  if (result) {
+    result = readTillPrompt(RECEIVED_PROMPT, RESPONSE_TIMEOUT);
+  }
+
+  // Attempt to read the response code  
+  if (result) {
+    result = parseHTTPResponse(httpCode);
+  }
 
   // The connection might have closed automatically
   // Or it failed to open
@@ -305,8 +313,8 @@ bool Sodaq_WifiBee::readTillPrompt(const String prompt, const uint32_t timeMS)
   bool result = false;
 
   uint32_t maxTS = millis() + timeMS;
-  uint16_t index = 0;
-  uint16_t promptLen = prompt.length();
+  size_t index = 0;
+  size_t promptLen = prompt.length();
   
   while (millis()  < maxTS) {
     if (_dataStream->available()) {
@@ -331,6 +339,52 @@ bool Sodaq_WifiBee::readTillPrompt(const String prompt, const uint32_t timeMS)
   }
 
   return result; 
+}
+
+bool Sodaq_WifiBee::storeTillPrompt(uint8_t* buffer, const size_t size, size_t& stored, const String prompt, const uint32_t timeMS)
+{
+  if (!_dataStream) {
+    return false;
+  }
+
+  bool result = false;
+
+  uint32_t maxTS = millis() + timeMS;
+  size_t promptIndex = 0;
+  size_t bufferIndex = 0;
+  uint16_t promptLen = prompt.length();
+
+  while (millis()  < maxTS) {
+    if (_dataStream->available()) {
+      char c = _dataStream->read();
+      diagPrint(c);
+
+      if (bufferIndex < (size - 1)) {
+        buffer[bufferIndex] = c;
+        bufferIndex++;
+      }
+
+      if (c == prompt[promptIndex]) {
+        promptIndex++;
+
+        if (promptIndex == promptLen) {
+          result = true;
+          break;
+        }
+      }
+      else {
+        promptIndex = 0;
+      }
+    }
+    else {
+      _delay(10);
+    }
+  }
+
+  buffer[bufferIndex] = '\0';
+  stored = bufferIndex;
+
+  return result;
 }
 
 inline void Sodaq_WifiBee::send(const String data)
@@ -525,6 +579,21 @@ bool Sodaq_WifiBee::waitForIP(const uint32_t timeMS)
     case 5: diagPrintLn("Success: IP received");
       result = true;
       break;
+  }
+
+  return result;
+}
+
+bool Sodaq_WifiBee::parseHTTPResponse(uint16_t& httpCode)
+{
+  bool result = false;
+
+  uint8_t buffer[4];
+  size_t stored;
+  result = storeTillPrompt(buffer, 4, stored, "\r\n", RESPONSE_TIMEOUT);
+
+  if (result) {
+    httpCode = atoi((char*)buffer);
   }
 
   return result;
