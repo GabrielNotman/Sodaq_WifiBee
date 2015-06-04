@@ -328,7 +328,7 @@ bool Sodaq_WifiBee::readResponse(uint8_t* buffer, const size_t size)
   result = sendWaitForPrompt("file.open(\"lastData.txt\", \"r+\")", "> ", RESPONSE_TIMEOUT);
 
   if (result) {
-    result = sendWaitForPrompt("print(\"|\" .. \"SOF|\" .. file.read() .. \"|EOF|\")", "|SOF|", RESPONSE_TIMEOUT);
+    result = sendWaitForPrompt("print(\"|\" .. \"SOF|\\r\\n\" .. file.read() .. \"|EOF|\")", "|SOF|\r\n", RESPONSE_TIMEOUT);
   }
   
   if (result) {
@@ -350,16 +350,16 @@ bool Sodaq_WifiBee::readHTTPResponse(uint8_t* buffer, const size_t size,
   result = sendWaitForPrompt("file.open(\"lastData.txt\", \"r+\")", "> ", RESPONSE_TIMEOUT);
 
   if (result) {
-    result = sendWaitForPrompt("print(\"|\" .. \"SOF|\" .. file.read() .. \"|EOF|\")", "|SOF|", RESPONSE_TIMEOUT);
-  }
-
-  if (result) {
-    readTillPrompt("\r\n\r\n", READBACK_TIMEOUT);
+    result = sendWaitForPrompt("print(\"|\" .. \"SOF|\\r\\n\" .. file.read() .. \"|EOF|\")", "|SOF|\r\n", RESPONSE_TIMEOUT);
   }
 
   if (result) {
     readTillPrompt(" ", READBACK_TIMEOUT);
     result = parseHTTPResponse(httpCode);
+  }
+
+  if (result) {
+    result = readTillPrompt("\r\n\r\n", READBACK_TIMEOUT);
   }
 
   if (result) {
@@ -463,7 +463,7 @@ bool Sodaq_WifiBee::readTillPrompt(const String prompt, const uint32_t timeMS)
   return result; 
 }
 
-bool Sodaq_WifiBee::storeTillPrompt(uint8_t* buffer, const size_t size, size_t& stored, const String prompt, const uint32_t timeMS)
+bool Sodaq_WifiBee::storeTillPrompt(uint8_t* buffer, const size_t size, size_t& bytesStored, const String prompt, const uint32_t timeMS)
 {
   if (!_dataStream) {
     return false;
@@ -481,7 +481,7 @@ bool Sodaq_WifiBee::storeTillPrompt(uint8_t* buffer, const size_t size, size_t& 
       char c = _dataStream->read();
       diagPrint(c);
 
-      if (bufferIndex < (size - 1)) {
+      if (bufferIndex < size) {
         buffer[bufferIndex] = c;
         bufferIndex++;
       }
@@ -503,8 +503,15 @@ bool Sodaq_WifiBee::storeTillPrompt(uint8_t* buffer, const size_t size, size_t& 
     }
   }
 
+  // If we find the prompt
+  // Rewind the final stored index
+  // So that the prompt isn't stored
+  if (result) {
+    bufferIndex -= promptLen;
+  }
+
   buffer[bufferIndex] = '\0';
-  stored = bufferIndex;
+  bytesStored = bufferIndex;
 
   return result;
 }
@@ -713,7 +720,7 @@ bool Sodaq_WifiBee::parseHTTPResponse(uint16_t& httpCode)
   uint8_t buffer[4];
   size_t stored;
   result = storeTillPrompt(buffer, 4, stored, " ", RESPONSE_TIMEOUT);
-  
+
   if (result) {
     httpCode = atoi((char*)buffer);
   }

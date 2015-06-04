@@ -80,7 +80,7 @@ private:
   int readForTime(const uint32_t timeMS);
   bool readChar(char& data, const uint32_t timeMS);
   bool readTillPrompt(const String prompt, const uint32_t timeMS);
-  bool storeTillPrompt(uint8_t* buffer, const size_t size, size_t& stored, const String prompt, const uint32_t timeMS);
+  bool storeTillPrompt(uint8_t* buffer, const size_t size, size_t& bytesStored, const String prompt, const uint32_t timeMS);
   
   inline void send(const String data);
   inline void sendChar(const char data);
