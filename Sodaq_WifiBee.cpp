@@ -86,6 +86,12 @@ void Sodaq_WifiBee::init(Stream& stream, const uint8_t dtrPin)
 void Sodaq_WifiBee::connectionSettings(const String APN, const String username,
   const String password)
 {
+  connectionSettings(APN.c_str(), username.c_str(), password.c_str());
+}
+
+void Sodaq_WifiBee::connectionSettings(const char* APN, const char* username,
+  const char* password)
+{
   _APN = APN;
   _username = username;
   _password = password;
@@ -96,7 +102,7 @@ void Sodaq_WifiBee::setDiag(Stream& stream)
   _diagStream = &stream;
 }
 
-String Sodaq_WifiBee::getDeviceType()
+const char* Sodaq_WifiBee::getDeviceType()
 {
   return "WifiBee";
 }
@@ -120,6 +126,14 @@ bool Sodaq_WifiBee::HTTPAction(const String server, const uint16_t port,
   const String method, const String location, const String headers,
   const String body, uint16_t& httpCode)
 {
+  HTTPAction(server.c_str(), port, method.c_str(), location.c_str(),
+    headers.c_str(), body.c_str(), httpCode);
+}
+
+bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
+  const char* method, const char* location, const char* headers,
+  const char* body, uint16_t& httpCode)
+{
   bool result;
 
   // Open the connection
@@ -140,7 +154,7 @@ bool Sodaq_WifiBee::HTTPAction(const String server, const uint16_t port,
     send("\\r\\n");
 
     send("Content-Length: ");
-    send(body.length());
+    send(strlen(body));
     send("\\r\\n");
 
     sendEscaped(headers);
@@ -175,6 +189,12 @@ bool Sodaq_WifiBee::HTTPAction(const String server, const uint16_t port,
 
 bool Sodaq_WifiBee::HTTPGet(const String server, const uint16_t port,
   const String location, const String headers, uint16_t& httpCode)
+{
+  HTTPGet(server.c_str(), port, location.c_str(), headers.c_str(), httpCode);
+}
+
+bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
+  const char* location, const char* headers, uint16_t& httpCode)
 {
   bool result;
 
@@ -226,6 +246,14 @@ bool Sodaq_WifiBee::HTTPPost(const String server, const uint16_t port,
   const String location, const String headers, const String body,
   uint16_t& httpCode)
 {
+  HTTPPost(server.c_str(), port, location.c_str(), headers.c_str(),
+    body.c_str(), httpCode);
+}
+
+bool Sodaq_WifiBee::HTTPPost(const char* server, const uint16_t port,
+  const char* location, const char* headers, const char* body,
+  uint16_t& httpCode)
+{
   bool result;
 
   // Open the connection
@@ -245,7 +273,7 @@ bool Sodaq_WifiBee::HTTPPost(const String server, const uint16_t port,
     send("\\r\\n");
 
     send("Content-Length: ");
-    send(body.length());
+    send(strlen(body));
     send("\\r\\n");
 
     sendEscaped(headers);
@@ -281,10 +309,20 @@ bool Sodaq_WifiBee::HTTPPost(const String server, const uint16_t port,
 // TCP methods
 bool Sodaq_WifiBee::openTCP(const String server, uint16_t port)
 {
+  return openTCP(server.c_str(), port);
+}
+
+bool Sodaq_WifiBee::openTCP(const char* server, uint16_t port)
+{
   return openConnection(server, port, "net.TCP");
 }
 
 bool Sodaq_WifiBee::sendTCPAscii(const String data) 
+{
+  return transmitAsciiData(data.c_str());
+}
+
+bool Sodaq_WifiBee::sendTCPAscii(const char* data)
 {
   return transmitAsciiData(data);
 }
@@ -302,10 +340,20 @@ bool Sodaq_WifiBee::closeTCP()
 // UDP methods
 bool Sodaq_WifiBee::openUDP(const String server, uint16_t port)
 {
+  openUDP(server.c_str(), port);
+}
+
+bool Sodaq_WifiBee::openUDP(const char* server, uint16_t port)
+{
   return openConnection(server, port, "net.UDP");
 }
 
 bool Sodaq_WifiBee::sendUDPAscii(const String data)
+{
+  return transmitAsciiData(data.c_str());
+}
+
+bool Sodaq_WifiBee::sendUDPAscii(const char* data)
 {
   return transmitAsciiData(data);
 }
@@ -431,7 +479,7 @@ bool Sodaq_WifiBee::readChar(char& data, const uint32_t timeMS)
   return result;
 }
 
-bool Sodaq_WifiBee::readTillPrompt(const String prompt, const uint32_t timeMS)
+bool Sodaq_WifiBee::readTillPrompt(const char* prompt, const uint32_t timeMS)
 {
   if (!_dataStream) {
     return false;
@@ -441,7 +489,7 @@ bool Sodaq_WifiBee::readTillPrompt(const String prompt, const uint32_t timeMS)
 
   uint32_t maxTS = millis() + timeMS;
   size_t index = 0;
-  size_t promptLen = prompt.length();
+  size_t promptLen = strlen(prompt);
   
   while (millis()  < maxTS) {
     if (_dataStream->available()) {
@@ -468,7 +516,7 @@ bool Sodaq_WifiBee::readTillPrompt(const String prompt, const uint32_t timeMS)
   return result; 
 }
 
-bool Sodaq_WifiBee::storeTillPrompt(uint8_t* buffer, const size_t size, size_t& bytesStored, const String prompt, const uint32_t timeMS)
+bool Sodaq_WifiBee::storeTillPrompt(uint8_t* buffer, const size_t size, size_t& bytesStored, const char* prompt, const uint32_t timeMS)
 {
   if (!_dataStream) {
     return false;
@@ -479,7 +527,7 @@ bool Sodaq_WifiBee::storeTillPrompt(uint8_t* buffer, const size_t size, size_t& 
   uint32_t maxTS = millis() + timeMS;
   size_t promptIndex = 0;
   size_t bufferIndex = 0;
-  uint16_t promptLen = prompt.length();
+  size_t promptLen = strlen(prompt);
 
   while (millis()  < maxTS) {
     if (_dataStream->available()) {
@@ -521,9 +569,9 @@ bool Sodaq_WifiBee::storeTillPrompt(uint8_t* buffer, const size_t size, size_t& 
   return result;
 }
 
-void Sodaq_WifiBee::sendEscaped(const String data)
+void Sodaq_WifiBee::sendEscaped(const char* data)
 {
-  size_t length = data.length();
+  size_t length = strlen(data);
 
   //Todo add other lua escape characters?
   for (size_t i = 0; i < length; i++) {
@@ -544,8 +592,8 @@ void Sodaq_WifiBee::sendBinary(const uint8_t* data, const size_t length)
   }
 }
 
-bool Sodaq_WifiBee::openConnection(const String server, const uint16_t port,
-  const String type)
+bool Sodaq_WifiBee::openConnection(const char* server, const uint16_t port,
+  const char* type)
 {
   on();
 
@@ -599,7 +647,7 @@ bool Sodaq_WifiBee::openConnection(const String server, const uint16_t port,
   return result;
 }
 
-bool Sodaq_WifiBee::transmitAsciiData(const String data)
+bool Sodaq_WifiBee::transmitAsciiData(const char* data)
 {
   send("wifiConn:send(\"");
   sendEscaped(data);
