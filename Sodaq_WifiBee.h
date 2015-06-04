@@ -30,7 +30,7 @@ class Sodaq_WifiBee
 {
 public:
   Sodaq_WifiBee();
-  void init(HardwareSerial& stream, const uint8_t dtrPin);
+  void init(Stream& stream, const uint8_t dtrPin);
   void connectionSettings(const String APN, const String username, const String password);
   void setDiag(Stream& stream);
 

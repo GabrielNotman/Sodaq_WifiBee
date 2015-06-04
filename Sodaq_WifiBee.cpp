@@ -74,7 +74,7 @@ Sodaq_WifiBee::Sodaq_WifiBee()
   _diagStream = NULL;
 }
 
-void Sodaq_WifiBee::init(HardwareSerial& stream, const uint8_t dtrPin)
+void Sodaq_WifiBee::init(Stream& stream, const uint8_t dtrPin)
 {
   _dataStream = &stream;
   _dtrPin = dtrPin;
