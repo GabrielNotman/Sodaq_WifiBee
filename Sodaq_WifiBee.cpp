@@ -100,6 +100,11 @@ void Sodaq_WifiBee::setDiag(Stream& stream)
   _diagStream = &stream;
 }
 
+String Sodaq_WifiBee::getDeviceType()
+{
+  return "WifiBee";
+}
+
 void Sodaq_WifiBee::on()
 {
   diagPrintLn("\r\nPower ON");

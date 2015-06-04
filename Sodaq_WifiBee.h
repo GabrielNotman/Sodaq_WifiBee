@@ -34,6 +34,8 @@ public:
   void connectionSettings(const String APN, const String username, const String password);
   void setDiag(Stream& stream);
 
+  String getDeviceType();
+
   void on();
   void off();
 
