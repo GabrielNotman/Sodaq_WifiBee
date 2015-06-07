@@ -451,6 +451,49 @@ bool Sodaq_WifiBee::readHTTPResponse(char* buffer, const size_t size,
   return result;
 }
 
+// Stream implementations
+size_t Sodaq_WifiBee::write(uint8_t x)
+{ 
+  if (_dataStream) {
+    return _dataStream->write(x);
+  } else {
+    return 0;
+  }
+}
+
+int Sodaq_WifiBee::available()
+{
+  if (_dataStream) {
+    return _dataStream->available();
+  } else {
+    return -1;
+  }
+}
+
+int Sodaq_WifiBee::peek()
+{ 
+  if (_dataStream) {
+    return _dataStream->peek();
+  } else {
+    return -1;
+  }
+}
+
+int Sodaq_WifiBee::read()
+{ 
+  if (_dataStream) {
+    return _dataStream->read();
+  } else {
+    return -1;
+  }
+}
+
+void Sodaq_WifiBee::flush() {
+  if (_dataStream) {
+    _dataStream->flush();
+  }
+}
+
 // Private methods
 void Sodaq_WifiBee::flushInputStream()
 {

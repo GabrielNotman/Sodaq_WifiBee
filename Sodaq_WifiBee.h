@@ -26,7 +26,7 @@
 #include <Arduino.h>
 #include <Stream.h>
 
-class Sodaq_WifiBee
+class Sodaq_WifiBee : public Stream
 {
 public:
   Sodaq_WifiBee();
@@ -99,6 +99,17 @@ public:
   bool readResponseBinary(uint8_t* buffer, const size_t size, size_t& bytesRead);
 
   bool readHTTPResponse(char* buffer, const size_t size, size_t& bytesRead, uint16_t& httpCode);
+
+  // Stream implementations
+  size_t write(uint8_t x);
+  
+  int available();
+  
+  int peek();
+
+  int read();
+
+  void flush();
 
 private:
   String _APN;
