@@ -139,7 +139,7 @@ bool Sodaq_WifiBee::HTTPAction(const String& server, const uint16_t port,
     const String& method, const String& location, const String& headers,
     const String& body, uint16_t& httpCode)
 {
-  HTTPAction(server.c_str(), port, method.c_str(), location.c_str(),
+  return HTTPAction(server.c_str(), port, method.c_str(), location.c_str(),
       headers.c_str(), body.c_str(), httpCode);
 }
 
@@ -201,7 +201,7 @@ bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
 bool Sodaq_WifiBee::HTTPGet(const String& server, const uint16_t port,
     const String& location, const String& headers, uint16_t& httpCode)
 {
-  HTTPGet(server.c_str(), port, location.c_str(), headers.c_str(), httpCode);
+  return HTTPGet(server.c_str(), port, location.c_str(), headers.c_str(), httpCode);
 }
 
 bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
@@ -255,7 +255,7 @@ bool Sodaq_WifiBee::HTTPPost(const String& server, const uint16_t port,
     const String& location, const String& headers, const String& body,
     uint16_t& httpCode)
 {
-  HTTPPost(server.c_str(), port, location.c_str(), headers.c_str(),
+  return HTTPPost(server.c_str(), port, location.c_str(), headers.c_str(),
       body.c_str(), httpCode);
 }
 
@@ -347,7 +347,7 @@ bool Sodaq_WifiBee::closeTCP()
 // UDP methods
 bool Sodaq_WifiBee::openUDP(const String& server, uint16_t port)
 {
-  openUDP(server.c_str(), port);
+  return openUDP(server.c_str(), port);
 }
 
 bool Sodaq_WifiBee::openUDP(const char* server, uint16_t port)
