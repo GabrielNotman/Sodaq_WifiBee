@@ -48,7 +48,7 @@
 #define RECONNECT_CALLBACK "function(s) print(\"|RC|\") end"
 #define DISCONNECT_CALLBACK "function(s) print(\"|DC|\") end"
 #define SENT_CALLBACK "function(s) print(\"|DS|\") end"
-#define RECEIVED_CALLBACK "function(s, d) file.open(\"lastData.txt\", \"w+\") file.write(d) file.flush() file.close() print(\"|DR|\" .. string.sub(d,10,13) .. \" \\r\\n\") end"
+#define RECEIVED_CALLBACK "function(s, d) file.open(\"lastData.txt\", \"w+\") file.write(d) file.flush() file.close() print(\"|DR|\" .. string.sub(d,10,12) .. \"|\\r\\n\") end"
 #define STATUS_CALLBACK "print(\"|\" .. \"STS|\" .. wifi.sta.status())\r\n"
 
 // Timeout constants
@@ -527,15 +527,20 @@ bool Sodaq_WifiBee::storeTillPrompt(uint8_t* buffer, const size_t size,
 
   uint32_t maxTS = millis() + timeMS;
   size_t promptIndex = 0;
-  size_t bufferIndex = 0;
   size_t promptLen = strlen(prompt);
+
+  size_t bufferIndex = 0;
+  size_t streamCount = 0;
+  
 
   while (millis() < maxTS) {
     if (_dataStream->available()) {
       char c = _dataStream->read();
       diagPrint(c);
 
-      if (bufferIndex < size) {
+      streamCount++;
+
+      if (bufferIndex < (size-1)) {
         buffer[bufferIndex] = c;
         bufferIndex++;
       }
@@ -545,6 +550,7 @@ bool Sodaq_WifiBee::storeTillPrompt(uint8_t* buffer, const size_t size,
 
         if (promptIndex == promptLen) {
           result = true;
+          bufferIndex = min(size - 1, streamCount - promptLen);
           break;
         }
       } else {
@@ -555,12 +561,7 @@ bool Sodaq_WifiBee::storeTillPrompt(uint8_t* buffer, const size_t size,
     }
   }
 
-  // If we find the prompt
-  // Rewind the final stored index
-  // So that the prompt isn't stored
-  if (result) {
-    bufferIndex -= promptLen;
-  }
+  //bufferIndex -= (promptLen - 1);
 
   buffer[bufferIndex] = '\0';
   bytesStored = bufferIndex;
@@ -781,7 +782,7 @@ bool Sodaq_WifiBee::parseHTTPResponse(uint16_t& httpCode)
 
   uint8_t buffer[4];
   size_t stored;
-  result = storeTillPrompt(buffer, 4, stored, " ", RESPONSE_TIMEOUT);
+  result = storeTillPrompt(buffer, 4, stored, "|", RESPONSE_TIMEOUT);
 
   if (result) {
     httpCode = atoi((char*) buffer);
