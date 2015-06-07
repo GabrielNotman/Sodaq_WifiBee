@@ -49,7 +49,7 @@
 #define DISCONNECT_CALLBACK "function(s) print(\"|DC|\") end"
 #define SENT_CALLBACK "function(s) print(\"|DS|\") end"
 #define RECEIVED_CALLBACK "function(s, d) file.open(\"lastData.txt\", \"w+\") file.write(d) file.flush() file.close() print(\"|DR|\" .. string.sub(d,10,12) .. \"|\") end"
-#define STATUS_CALLBACK "print(\"|\" .. \"STS|\" .. wifi.sta.status())\r\n"
+#define STATUS_CALLBACK "print(\"|\" .. \"STS|\" .. wifi.sta.status() .. \"|\")\r\n"
 
 // Timeout constants
 #define RESPONSE_TIMEOUT 2000
@@ -58,6 +58,7 @@
 #define SERVER_DISCONNECT_TIMEOUT 2000
 #define READBACK_TIMEOUT 2500
 #define WAKE_DELAY 1000
+#define STATUS_DELAY 100
 
 Sodaq_WifiBee::Sodaq_WifiBee()
 {
@@ -754,9 +755,9 @@ bool Sodaq_WifiBee::getStatus(uint8_t& status)
     } else {
       result = false;
     }
-
-    flushInputStream();
   }
+
+  skipForTime(STATUS_DELAY);
 
   return result;
 }
