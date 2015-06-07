@@ -370,7 +370,7 @@ bool Sodaq_WifiBee::closeUDP()
   return closeConnection();
 }
 
-bool Sodaq_WifiBee::readResponse(uint8_t* buffer, const size_t size)
+bool Sodaq_WifiBee::readResponseAscii(char* buffer, const size_t size, size_t& bytesRead)
 {
   on();
 
@@ -385,7 +385,30 @@ bool Sodaq_WifiBee::readResponse(uint8_t* buffer, const size_t size)
   }
 
   if (result) {
-    size_t bytesRead;
+    result = readTillPrompt((uint8_t*)buffer, size - 1, bytesRead, "|EOF|",
+      READBACK_TIMEOUT);
+    buffer[bytesRead] = '\0';
+  }
+
+  off();
+  return result;
+}
+
+bool Sodaq_WifiBee::readResponseBinary(uint8_t* buffer, const size_t size, size_t& bytesRead)
+{
+  on();
+
+  bool result;
+
+  send("file.open(\"lastData.txt\", \"r+\")\r\n");
+  result = skipTillPrompt("> ", RESPONSE_TIMEOUT);
+
+  if (result) {
+    send("uart.write(0, \"|\" .. \"SOF|\\r\\n\" .. file.read() .. \"|EOF|\")\r\n");
+    result = skipTillPrompt("|SOF|\r\n", RESPONSE_TIMEOUT);
+  }
+
+  if (result) {
     result = readTillPrompt(buffer, size, bytesRead, "|EOF|",
         READBACK_TIMEOUT);
   }
@@ -394,8 +417,8 @@ bool Sodaq_WifiBee::readResponse(uint8_t* buffer, const size_t size)
   return result;
 }
 
-bool Sodaq_WifiBee::readHTTPResponse(uint8_t* buffer, const size_t size,
-    uint16_t& httpCode)
+bool Sodaq_WifiBee::readHTTPResponse(char* buffer, const size_t size,
+    size_t& bytesRead,uint16_t& httpCode)
 {
   on();
 
@@ -419,9 +442,9 @@ bool Sodaq_WifiBee::readHTTPResponse(uint8_t* buffer, const size_t size,
   }
 
   if (result) {
-    size_t bytesRead;
-    result = readTillPrompt(buffer, size, bytesRead, "|EOF|",
+    result = readTillPrompt((uint8_t*)buffer, size - 1, bytesRead, "|EOF|",
         READBACK_TIMEOUT);
+    buffer[bytesRead] = '\0';
   }
 
   off();
@@ -542,7 +565,7 @@ bool Sodaq_WifiBee::readTillPrompt(uint8_t* buffer, const size_t size,
 
       streamCount++;
 
-      if (bufferIndex < (size-1)) {
+      if (bufferIndex < size) {
         buffer[bufferIndex] = c;
         bufferIndex++;
       }
@@ -563,9 +586,6 @@ bool Sodaq_WifiBee::readTillPrompt(uint8_t* buffer, const size_t size,
     }
   }
 
-  //bufferIndex -= (promptLen - 1);
-
-  buffer[bufferIndex] = '\0';
   bytesStored = bufferIndex;
 
   return result;
@@ -812,7 +832,8 @@ bool Sodaq_WifiBee::parseHTTPResponse(uint16_t& httpCode)
 
   uint8_t buffer[4];
   size_t stored;
-  result = readTillPrompt(buffer, 4, stored, "|", RESPONSE_TIMEOUT);
+  result = readTillPrompt(buffer, 3, stored, "|", RESPONSE_TIMEOUT);
+  buffer[3] = '\0';
 
   if (result) {
     httpCode = atoi((char*) buffer);

@@ -94,9 +94,11 @@ public:
   bool closeUDP();
 
   // Read back
-  bool readResponse(uint8_t* buffer, const size_t size);
+  bool readResponseAscii(char* buffer, const size_t size, size_t& bytesRead);
 
-  bool readHTTPResponse(uint8_t* buffer, const size_t size, uint16_t& httpCode);
+  bool readResponseBinary(uint8_t* buffer, const size_t size, size_t& bytesRead);
+
+  bool readHTTPResponse(char* buffer, const size_t size, size_t& bytesRead, uint16_t& httpCode);
 
 private:
   String _APN;
