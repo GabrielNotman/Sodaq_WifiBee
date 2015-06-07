@@ -48,7 +48,7 @@
 #define RECONNECT_CALLBACK "function(s) print(\"|RC|\") end"
 #define DISCONNECT_CALLBACK "function(s) print(\"|DC|\") end"
 #define SENT_CALLBACK "function(s) print(\"|DS|\") end"
-#define RECEIVED_CALLBACK "function(s, d) file.open(\"lastData.txt\", \"w+\") file.write(d) file.flush() file.close() print(\"|DR|\" .. string.sub(d,10,13)) end"
+#define RECEIVED_CALLBACK "function(s, d) file.open(\"last.dat\", \"w+\") file.write(d) file.flush() file.close() print(\"|DR|\" .. string.sub(d,10,13)) end"
 #define STATUS_CALLBACK "print(\"|\" .. \"STS|\" .. wifi.sta.status() .. \"|\")\r\n"
 
 // Timeout constants
@@ -80,7 +80,7 @@ void Sodaq_WifiBee::init(Stream& stream, const uint8_t dtrPin)
   on();
 
   diagPrintLn("\r\nDeleting old data..\r\n");
-  send("file.remove(\"lastData.txt\")\r\n");
+  send("file.remove(\"last.dat\")\r\n");
   skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
 
   off();
@@ -376,7 +376,7 @@ bool Sodaq_WifiBee::readResponseAscii(char* buffer, const size_t size, size_t& b
 
   bool result;
 
-  send("file.open(\"lastData.txt\", \"r+\")\r\n");
+  send("file.open(\"last.dat\", \"r+\")\r\n");
   result = skipTillPrompt("> ", RESPONSE_TIMEOUT);
 
   if (result) {
@@ -400,7 +400,7 @@ bool Sodaq_WifiBee::readResponseBinary(uint8_t* buffer, const size_t size, size_
 
   bool result;
 
-  send("file.open(\"lastData.txt\", \"r+\")\r\n");
+  send("file.open(\"last.dat\", \"r+\")\r\n");
   result = skipTillPrompt("> ", RESPONSE_TIMEOUT);
 
   if (result) {
@@ -424,7 +424,7 @@ bool Sodaq_WifiBee::readHTTPResponse(char* buffer, const size_t size,
 
   bool result;
 
-  send("file.open(\"lastData.txt\", \"r+\")\r\n");
+  send("file.open(\"last.dat\", \"r+\")\r\n");
   result = skipTillPrompt("> ", RESPONSE_TIMEOUT);
 
   if (result) {
