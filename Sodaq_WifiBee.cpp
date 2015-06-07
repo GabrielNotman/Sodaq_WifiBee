@@ -495,10 +495,8 @@ void Sodaq_WifiBee::flush() {
 // Private methods
 void Sodaq_WifiBee::flushInputStream()
 {
-  if (_dataStream) {
-    while (_dataStream->available()) {
-      diagPrint((char )_dataStream->read());
-    }
+  while (available()) {
+    diagPrint((char )read());
   }
 }
 
@@ -512,8 +510,8 @@ int Sodaq_WifiBee::skipForTime(const uint32_t timeMS)
   uint32_t maxTS = millis() + timeMS;
 
   while (millis() < maxTS) {
-    if (_dataStream->available()) {
-      char c = _dataStream->read();
+    if (available()) {
+      char c = read();
       diagPrint(c);
       count++;
     } else {
@@ -537,8 +535,8 @@ bool Sodaq_WifiBee::skipTillPrompt(const char* prompt, const uint32_t timeMS)
   size_t promptLen = strlen(prompt);
 
   while (millis() < maxTS) {
-    if (_dataStream->available()) {
-      char c = _dataStream->read();
+    if (available()) {
+      char c = read();
       diagPrint(c);
 
       if (c == prompt[index]) {
@@ -569,8 +567,8 @@ bool Sodaq_WifiBee::readChar(char& data, const uint32_t timeMS)
 
   uint32_t maxTS = millis() + timeMS;
   while ((millis() < maxTS) && (!result)) {
-    if (_dataStream->available()) {
-      data = _dataStream->read();
+    if (available()) {
+      data = read();
       diagPrint(data);
       result = true;
     }
@@ -600,8 +598,8 @@ bool Sodaq_WifiBee::readTillPrompt(uint8_t* buffer, const size_t size,
   
 
   while (millis() < maxTS) {
-    if (_dataStream->available()) {
-      char c = _dataStream->read();
+    if (available()) {
+      char c = read();
       diagPrint(c);
 
       streamCount++;
