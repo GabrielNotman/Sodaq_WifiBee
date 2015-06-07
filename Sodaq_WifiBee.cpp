@@ -74,6 +74,7 @@ Sodaq_WifiBee::Sodaq_WifiBee()
 
   _dataStream = NULL;
   _diagStream = NULL;
+  _dtrPin = 0xFF;               // initialize to some unlikely value
 }
 
 Sodaq_WifiBee::~Sodaq_WifiBee()
