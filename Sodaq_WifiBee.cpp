@@ -628,14 +628,15 @@ void Sodaq_WifiBee::sendEscapedAscii(const char* data)
     case '\'':
       send("\\\'");
       break;
-    case '\[':
+    case '[':
       send("\\[");
       break;
-    case '\]':
+    case ']':
       send("\\]");
       break;
     default:
       send(data[i]);
+      break;
     }
   }
 }
