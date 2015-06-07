@@ -110,12 +110,12 @@ private:
   void flushInputStream();
 
   int skipForTime(const uint32_t timeMS);
+    
+  bool skipTillPrompt(const char* prompt, const uint32_t timeMS);
 
   bool readChar(char& data, const uint32_t timeMS);
 
-  bool skipTillPrompt(const char* prompt, const uint32_t timeMS);
-
-  bool storeTillPrompt(uint8_t* buffer, const size_t size, size_t& bytesStored,
+  bool readTillPrompt(uint8_t* buffer, const size_t size, size_t& bytesStored,
       const char* prompt, const uint32_t timeMS);
 
   void sendEscapedAscii(const char* data);

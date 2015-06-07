@@ -385,7 +385,7 @@ bool Sodaq_WifiBee::readResponse(uint8_t* buffer, const size_t size)
 
   if (result) {
     size_t bytesRead;
-    result = storeTillPrompt(buffer, size, bytesRead, "|EOF|",
+    result = readTillPrompt(buffer, size, bytesRead, "|EOF|",
         READBACK_TIMEOUT);
   }
 
@@ -419,7 +419,7 @@ bool Sodaq_WifiBee::readHTTPResponse(uint8_t* buffer, const size_t size,
 
   if (result) {
     size_t bytesRead;
-    result = storeTillPrompt(buffer, size, bytesRead, "|EOF|",
+    result = readTillPrompt(buffer, size, bytesRead, "|EOF|",
         READBACK_TIMEOUT);
   }
 
@@ -459,28 +459,6 @@ int Sodaq_WifiBee::skipForTime(const uint32_t timeMS)
   return count;
 }
 
-bool Sodaq_WifiBee::readChar(char& data, const uint32_t timeMS)
-{
-  if (!_dataStream) {
-    return false;
-  }
-
-  bool result = false;
-
-  uint32_t maxTS = millis() + timeMS;
-  while ((millis() < maxTS) && (!result)) {
-    if (_dataStream->available()) {
-      data = _dataStream->read();
-      diagPrintLn(data);
-      result = true;
-    } else {
-      _delay(10);
-    }
-  }
-
-  return result;
-}
-
 bool Sodaq_WifiBee::skipTillPrompt(const char* prompt, const uint32_t timeMS)
 {
   if (!_dataStream) {
@@ -516,7 +494,30 @@ bool Sodaq_WifiBee::skipTillPrompt(const char* prompt, const uint32_t timeMS)
   return result;
 }
 
-bool Sodaq_WifiBee::storeTillPrompt(uint8_t* buffer, const size_t size,
+bool Sodaq_WifiBee::readChar(char& data, const uint32_t timeMS)
+{
+  if (!_dataStream) {
+    return false;
+  }
+
+  bool result = false;
+
+  uint32_t maxTS = millis() + timeMS;
+  while ((millis() < maxTS) && (!result)) {
+    if (_dataStream->available()) {
+      data = _dataStream->read();
+      diagPrint(data);
+      result = true;
+    }
+    else {
+      _delay(10);
+    }
+  }
+
+  return result;
+}
+
+bool Sodaq_WifiBee::readTillPrompt(uint8_t* buffer, const size_t size,
     size_t& bytesStored, const char* prompt, const uint32_t timeMS)
 {
   if (!_dataStream) {
@@ -810,7 +811,7 @@ bool Sodaq_WifiBee::parseHTTPResponse(uint16_t& httpCode)
 
   uint8_t buffer[4];
   size_t stored;
-  result = storeTillPrompt(buffer, 4, stored, "|", RESPONSE_TIMEOUT);
+  result = readTillPrompt(buffer, 4, stored, "|", RESPONSE_TIMEOUT);
 
   if (result) {
     httpCode = atoi((char*) buffer);
