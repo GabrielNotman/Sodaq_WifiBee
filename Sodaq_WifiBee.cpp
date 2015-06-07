@@ -674,8 +674,6 @@ bool Sodaq_WifiBee::openConnection(const char* server, const uint16_t port,
   result = connect();
 
   if (result) {
-    String data;
-
     //Create the connection object
     print("wifiConn=net.createConnection(");
     print(type);
