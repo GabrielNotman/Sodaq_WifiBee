@@ -464,7 +464,7 @@ int Sodaq_WifiBee::available()
   if (_dataStream) {
     return _dataStream->available();
   } else {
-    return -1;
+    return 0;
   }
 }
 
