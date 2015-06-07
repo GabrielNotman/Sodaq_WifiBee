@@ -48,7 +48,7 @@
 #define RECONNECT_CALLBACK "function(s) print(\"|RC|\") end"
 #define DISCONNECT_CALLBACK "function(s) print(\"|DC|\") end"
 #define SENT_CALLBACK "function(s) print(\"|DS|\") end"
-#define RECEIVED_CALLBACK "function(s, d) file.open(\"lastData.txt\", \"w+\") file.write(d) file.flush() file.close() print(\"|DR|\" .. string.sub(d,10,12) .. \"|\\r\\n\") end"
+#define RECEIVED_CALLBACK "function(s, d) file.open(\"lastData.txt\", \"w+\") file.write(d) file.flush() file.close() print(\"|DR|\" .. string.sub(d,10,12) .. \"|\") end"
 #define STATUS_CALLBACK "print(\"|\" .. \"STS|\" .. wifi.sta.status())\r\n"
 
 // Timeout constants
@@ -158,10 +158,10 @@ bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
     send(strlen(body));
     send("\\r\\n");
 
-    sendEscaped(headers);
+    sendEscapedAscii(headers);
     send("\\r\\n\\r\\n");
 
-    sendEscaped(body);
+    sendEscapedAscii(body);
 
     send("\")\r\n");
   }
@@ -215,7 +215,7 @@ bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
     send(port);
     send("\\r\\n");
 
-    sendEscaped(headers);
+    sendEscapedAscii(headers);
     send("\\r\\n\\r\\n");
 
     send("\")\r\n");
@@ -277,10 +277,10 @@ bool Sodaq_WifiBee::HTTPPost(const char* server, const uint16_t port,
     send(strlen(body));
     send("\\r\\n");
 
-    sendEscaped(headers);
+    sendEscapedAscii(headers);
     send("\\r\\n\\r\\n");
 
-    sendEscaped(body);
+    sendEscapedAscii(body);
 
     send("\")\r\n");
   }
@@ -379,7 +379,7 @@ bool Sodaq_WifiBee::readResponse(uint8_t* buffer, const size_t size)
   result = readTillPrompt("> ", RESPONSE_TIMEOUT);
 
   if (result) {
-    send("print(\"|\" .. \"SOF|\\r\\n\" .. file.read() .. \"|EOF|\")\r\n");
+    send("uart.write(0, \"|\" .. \"SOF|\\r\\n\" .. file.read() .. \"|EOF|\")\r\n");
     result = readTillPrompt("|SOF|\r\n", RESPONSE_TIMEOUT);
   }
 
@@ -404,7 +404,7 @@ bool Sodaq_WifiBee::readHTTPResponse(uint8_t* buffer, const size_t size,
   result = readTillPrompt("> ", RESPONSE_TIMEOUT);
 
   if (result) {
-    send("print(\"|\" .. \"SOF|\\r\\n\" .. file.read() .. \"|EOF|\")\r\n");
+    send("uart.write(0, \"|\" .. \"SOF|\\r\\n\" .. file.read() .. \"|EOF|\")\r\n");
     result = readTillPrompt("|SOF|\r\n", RESPONSE_TIMEOUT);
   }
 
@@ -569,32 +569,60 @@ bool Sodaq_WifiBee::storeTillPrompt(uint8_t* buffer, const size_t size,
   return result;
 }
 
-void Sodaq_WifiBee::sendEscaped(const char* data)
+void Sodaq_WifiBee::sendEscapedAscii(const char* data)
 {
   size_t length = strlen(data);
 
   //Todo add other lua escape characters?
   for (size_t i = 0; i < length; i++) {
     switch (data[i]) {
-    case '\r':
-      send("\\r")
-      ;
+    case '\a':
+      send("\\a");
+      break;
+    case '\b':
+      send("\\b");
+      break;
+    case '\f':
+      send("\\f");
       break;
     case '\n':
-      send("\\n")
-      ;
+      send("\\n");
+      break;
+    case '\r':
+      send("\\r");
+      break;
+    case '\t':
+      send("\\t");
+      break;
+    case '\v':
+      send("\\v");
+      break;
+    case '\\':
+      send("\\\\");
+      break;
+    case '\"':
+      send("\\\"");
+      break;
+    case '\'':
+      send("\\\'");
+      break;
+    case '\[':
+      send("\\[");
+      break;
+    case '\]':
+      send("\\]");
       break;
     default:
-      send(data[i])
-      ;
+      send(data[i]);
     }
   }
 }
 
-void Sodaq_WifiBee::sendBinary(const uint8_t* data, const size_t length)
+void Sodaq_WifiBee::sendEscapedBinary(const uint8_t* data, const size_t length)
 {
-  if (_dataStream) {
-    _dataStream->write(data, length);
+  for (size_t i = 0; i < length; i++) {
+    send("\\");
+    send(data[i]);
   }
 }
 
@@ -667,7 +695,7 @@ bool Sodaq_WifiBee::closeConnection()
 bool Sodaq_WifiBee::transmitAsciiData(const char* data)
 {
   send("wifiConn:send(\"");
-  sendEscaped(data);
+  sendEscapedAscii(data);
   send("\")\r\n");
 
   return readTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
@@ -676,7 +704,7 @@ bool Sodaq_WifiBee::transmitAsciiData(const char* data)
 bool Sodaq_WifiBee::transmitBinaryData(const uint8_t* data, const size_t length)
 {
   send("wifiConn:send(\"");
-  sendBinary(data, length);
+  sendEscapedBinary(data, length);
   send("\")\r\n");
 
   return readTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);

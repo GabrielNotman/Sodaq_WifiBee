@@ -118,9 +118,9 @@ private:
   bool storeTillPrompt(uint8_t* buffer, const size_t size, size_t& bytesStored,
       const char* prompt, const uint32_t timeMS);
 
-  void sendEscaped(const char* data);
+  void sendEscapedAscii(const char* data);
 
-  void sendBinary(const uint8_t* data, const size_t length);
+  void sendEscapedBinary(const uint8_t* data, const size_t length);
 
   bool openConnection(const char* server, const uint16_t port,
       const char* type);
