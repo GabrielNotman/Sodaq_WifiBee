@@ -771,7 +771,7 @@ bool Sodaq_WifiBee::getStatus(uint8_t& status)
   }
 
   if (result) {
-    if ((statusCode > 47) && (statusCode < 54)) { //characters 0..5
+    if ((statusCode >= '0') && (statusCode <= '5')) {
       status = statusCode - 48;
     } else {
       result = false;
