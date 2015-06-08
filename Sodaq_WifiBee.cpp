@@ -90,6 +90,8 @@ void Sodaq_WifiBee::init(Stream& stream, const uint8_t dtrPin,
   _buffer = (uint8_t*)malloc(_bufferSize);
 
   pinMode(_dtrPin, OUTPUT);
+
+  off();
 }
 
 void Sodaq_WifiBee::connectionSettings(const String APN, const String username,
