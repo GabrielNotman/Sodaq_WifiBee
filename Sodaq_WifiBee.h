@@ -30,7 +30,7 @@ class Sodaq_WifiBee : public Stream
 {
 public:
   Sodaq_WifiBee();
-  ~Sodaq_WifiBee();
+  virtual ~Sodaq_WifiBee();
 
   void init(Stream& stream, const uint8_t dtrPin, 
     const size_t bufferSize);
