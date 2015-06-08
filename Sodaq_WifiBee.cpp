@@ -46,7 +46,7 @@
 #define RECONNECT_CALLBACK "function(s) print(\"|RC|\") end"
 #define DISCONNECT_CALLBACK "function(s) print(\"|DC|\") end"
 #define SENT_CALLBACK "function(s) print(\"|DS|\") end"
-#define RECEIVED_CALLBACK "function(s, d) lastData=d print(\"|DR|\" .. string.sub(d,10,12) .. \"|\") end"
+#define RECEIVED_CALLBACK "function(s, d) lastData=d print(\"|DR|\") end"
 #define STATUS_CALLBACK "print(\"|\" .. \"STS|\" .. wifi.sta.status() .. \"|\")"
 
 // Timeout constants
@@ -182,17 +182,12 @@ bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
 
   // Wait till we get the data received prompt
   if (result) {
-    skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT);
+    if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
+      readServerResponse();
+      parseHTTPResponse(httpCode);
+    }
   }
-
-  // Attempt to read the response code  
-  if (result) {
-    result = parseHTTPResponse(httpCode);
-  }
-
-  // Read back any server reponse
-  readServerResponse();
-
+  
   // The connection might have closed automatically
   // Or it failed to open
   closeConnection();
@@ -240,16 +235,11 @@ bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
 
   // Wait till we get the data received prompt
   if (result) {
-    skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT);
+    if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
+      readServerResponse();
+      parseHTTPResponse(httpCode);
+    }
   }
-
-  // Attempt to read the response code  
-  if (result) {
-    result = parseHTTPResponse(httpCode);
-  }
-
-  // Read back any server reponse
-  readServerResponse();
 
   // The connection might have closed automatically
   // Or it failed to open
@@ -307,16 +297,11 @@ bool Sodaq_WifiBee::HTTPPost(const char* server, const uint16_t port,
 
   // Wait till we get the data received prompt
   if (result) {
-    skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT);
+    if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
+      readServerResponse();
+      parseHTTPResponse(httpCode);
+    }
   }
-
-  // Attempt to read the response code  
-  if (result) {
-    result = parseHTTPResponse(httpCode);
-  }
-
-  // Read back any server reponse
-  readServerResponse();
 
   // The connection might have closed automatically
   // Or it failed to open
@@ -343,22 +328,12 @@ bool Sodaq_WifiBee::sendTCPAscii(const String data)
 
 bool Sodaq_WifiBee::sendTCPAscii(const char* data)
 {
-  bool result;
-
-  result = transmitAsciiData(data);
-  readServerResponse();
-
-  return result;
+  return transmitAsciiData(data);
 }
 
 bool Sodaq_WifiBee::sendTCPBinary(const uint8_t* data, const size_t length)
 {
-  bool result;
-
-  result = transmitBinaryData(data, length);
-  readServerResponse();
-
-  return result;
+  return transmitBinaryData(data, length);
 }
 
 bool Sodaq_WifiBee::closeTCP()
@@ -384,22 +359,12 @@ bool Sodaq_WifiBee::sendUDPAscii(const String data)
 
 bool Sodaq_WifiBee::sendUDPAscii(const char* data)
 {
-  bool result;
-
-  result = transmitAsciiData(data);
-  readServerResponse();
-
-  return result;
+  return transmitAsciiData(data);
 }
 
 bool Sodaq_WifiBee::sendUDPBinary(const uint8_t* data, const size_t length)
 {
-  bool result;
-
-  result = transmitBinaryData(data, length);
-  readServerResponse();
-
-  return result;
+  return transmitBinaryData(data, length);
 }
 
 bool Sodaq_WifiBee::closeUDP()
@@ -441,12 +406,9 @@ bool Sodaq_WifiBee::readHTTPResponse(char* buffer, const size_t size,
     return false;
   }
 
-  // The HTTP response code should follow the first ' '
-  char* codePos = strstr((char*)_buffer, " ");
-  if (codePos) {
-    httpCode = atoi(codePos);
-  }
-
+  // Read HTTP response code
+  parseHTTPResponse(httpCode);
+  
   // Add 4 to start from after the double newline
   char* startPos = strstr((char*)_buffer, "\r\n\r\n") + 4;
 
@@ -775,6 +737,7 @@ bool Sodaq_WifiBee::transmitAsciiData(const char* data)
 
   if (result) {
     skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT);
+    readServerResponse();
   }
 
   return result;
@@ -791,6 +754,7 @@ bool Sodaq_WifiBee::transmitBinaryData(const uint8_t* data, const size_t length)
 
   if (result) {
     skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT);
+    readServerResponse();
   }
 
   return result;
@@ -907,15 +871,15 @@ bool Sodaq_WifiBee::waitForIP(const uint32_t timeMS)
 
 bool Sodaq_WifiBee::parseHTTPResponse(uint16_t& httpCode)
 {
-  bool result;
+  bool result = false;
 
-  uint8_t buffer[4];
-  size_t stored;
-  result = readTillPrompt(buffer, 3, stored, "|", RESPONSE_TIMEOUT);
-  buffer[3] = '\0';
-
-  if (result) {
-    httpCode = atoi((char*) buffer);
+  // The HTTP response code should follow the first ' '
+  if (_bufferUsed > 0) {
+    char* codePos = strstr((char*)_buffer, " ");
+    if (codePos) {
+      httpCode = atoi(codePos);
+      result = true;
+    }
   }
 
   return result;
