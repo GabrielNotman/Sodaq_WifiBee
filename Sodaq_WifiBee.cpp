@@ -40,6 +40,8 @@
 #define SENT_PROMPT "|DS|"
 #define RECEIVED_PROMPT "|DR|"
 #define STATUS_PROMPT "|STS|"
+#define SOF_PROMPT "|SOF|"
+#define EOF_PROMPT "|EOF|"
 
 // Lua connection callback scripts
 #define CONNECT_CALLBACK "function(s) print(\"|C|\") end"
@@ -48,6 +50,7 @@
 #define SENT_CALLBACK "function(s) print(\"|DS|\") end"
 #define RECEIVED_CALLBACK "function(s, d) lastData=d print(\"|DR|\") end"
 #define STATUS_CALLBACK "print(\"|\" .. \"STS|\" .. wifi.sta.status() .. \"|\")"
+#define READ_BACK "uart.write(0, \"|\" .. \"SOF|\" .. lastData .. \"|EOF|\")"
 
 // Timeout constants
 #define RESPONSE_TIMEOUT 2000
@@ -57,7 +60,7 @@
 #define SERVER_DISCONNECT_TIMEOUT 2000
 #define READBACK_TIMEOUT 2500
 #define WAKE_DELAY 1000
-#define STATUS_DELAY 100
+#define STATUS_DELAY 1000
 
 Sodaq_WifiBee::Sodaq_WifiBee()
 {
@@ -764,11 +767,11 @@ bool Sodaq_WifiBee::readServerResponse()
 {
   bool result;
 
-  println("uart.write(0, \"|\" .. \"SOF|\\r\\n\" .. lastData .. \"|EOF|\")");
-  result = skipTillPrompt("|SOF|\r\n", RESPONSE_TIMEOUT);
+  println(READ_BACK);
+  result = skipTillPrompt(SOF_PROMPT, RESPONSE_TIMEOUT);
   
   if (result) {
-    result = readTillPrompt(_buffer, _bufferSize, _bufferUsed, "|EOF|",
+    result = readTillPrompt(_buffer, _bufferSize, _bufferUsed, EOF_PROMPT,
       READBACK_TIMEOUT);
   }
 
