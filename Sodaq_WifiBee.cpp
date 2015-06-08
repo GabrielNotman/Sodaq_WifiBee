@@ -46,7 +46,7 @@
 #define RECONNECT_CALLBACK "function(s) print(\"|RC|\") end"
 #define DISCONNECT_CALLBACK "function(s) print(\"|DC|\") end"
 #define SENT_CALLBACK "function(s) print(\"|DS|\") end"
-#define RECEIVED_CALLBACK "function(s, d) lastData=d print(\"|DR|\" .. string.sub(d,10,13)) end"
+#define RECEIVED_CALLBACK "function(s, d) lastData=d print(\"|DR|\" .. string.sub(d,10,12) .. \"|\") end"
 #define STATUS_CALLBACK "print(\"|\" .. \"STS|\" .. wifi.sta.status() .. \"|\")"
 
 // Timeout constants
@@ -894,7 +894,7 @@ bool Sodaq_WifiBee::parseHTTPResponse(uint16_t& httpCode)
 
   uint8_t buffer[4];
   size_t stored;
-  result = readTillPrompt(buffer, 3, stored, " ", RESPONSE_TIMEOUT);
+  result = readTillPrompt(buffer, 3, stored, "|", RESPONSE_TIMEOUT);
   buffer[3] = '\0';
 
   if (result) {
