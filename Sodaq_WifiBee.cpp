@@ -53,6 +53,7 @@
 #define RESPONSE_TIMEOUT 2000
 #define WIFI_CONNECT_TIMEOUT 4000
 #define SERVER_CONNECT_TIMEOUT 5000
+#define SERVER_RESPONSE_TIMEOUT 5000
 #define SERVER_DISCONNECT_TIMEOUT 2000
 #define READBACK_TIMEOUT 2500
 #define WAKE_DELAY 1000
@@ -179,7 +180,7 @@ bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
 
   // Wait till we get the data received prompt
   if (result) {
-    result = skipTillPrompt(RECEIVED_PROMPT, RESPONSE_TIMEOUT);
+    skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT);
   }
 
   // Attempt to read the response code  
@@ -237,7 +238,7 @@ bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
 
   // Wait till we get the data received prompt
   if (result) {
-    result = skipTillPrompt(RECEIVED_PROMPT, RESPONSE_TIMEOUT);
+    skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT);
   }
 
   // Attempt to read the response code  
@@ -304,7 +305,7 @@ bool Sodaq_WifiBee::HTTPPost(const char* server, const uint16_t port,
 
   // Wait till we get the data received prompt
   if (result) {
-    result = skipTillPrompt(RECEIVED_PROMPT, RESPONSE_TIMEOUT);
+    skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT);
   }
 
   // Attempt to read the response code  
@@ -767,7 +768,14 @@ bool Sodaq_WifiBee::transmitAsciiData(const char* data)
   sendEscapedAscii(data);
   println("\")");
 
-  return skipTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
+  bool result;
+  result = skipTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
+
+  if (result) {
+    skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT);
+  }
+
+  return result;
 }
 
 bool Sodaq_WifiBee::transmitBinaryData(const uint8_t* data, const size_t length)
@@ -776,7 +784,14 @@ bool Sodaq_WifiBee::transmitBinaryData(const uint8_t* data, const size_t length)
   sendEscapedBinary(data, length);
   println("\")");
 
-  return skipTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
+  bool result;
+  result = skipTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
+
+  if (result) {
+    skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT);
+  }
+
+  return result;
 }
 
 bool Sodaq_WifiBee::readServerResponse()
