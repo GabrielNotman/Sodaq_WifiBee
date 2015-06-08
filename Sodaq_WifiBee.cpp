@@ -64,14 +64,29 @@ Sodaq_WifiBee::Sodaq_WifiBee()
   _username = "";
   _password = "";
 
+  _bufferSize = 0;
+  _bufferUsed = 0;
+  _buffer = NULL;
+
   _dataStream = NULL;
   _diagStream = NULL;
 }
 
-void Sodaq_WifiBee::init(Stream& stream, const uint8_t dtrPin)
+Sodaq_WifiBee::~Sodaq_WifiBee()
+{
+  if (_buffer) {
+    free(_buffer);
+  }
+}
+
+void Sodaq_WifiBee::init(Stream& stream, const uint8_t dtrPin,
+  const size_t bufferSize)
 {
   _dataStream = &stream;
   _dtrPin = dtrPin;
+
+  _bufferSize = bufferSize;
+  _buffer = (uint8_t*)malloc(_bufferSize);
 
   pinMode(_dtrPin, OUTPUT);
 

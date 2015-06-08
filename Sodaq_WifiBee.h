@@ -30,7 +30,10 @@ class Sodaq_WifiBee : public Stream
 {
 public:
   Sodaq_WifiBee();
-  void init(Stream& stream, const uint8_t dtrPin);
+  ~Sodaq_WifiBee();
+
+  void init(Stream& stream, const uint8_t dtrPin, 
+    const size_t bufferSize);
 
   void connectionSettings(const String APN, const String username,
       const String password);
@@ -119,6 +122,10 @@ private:
   Stream* _dataStream;
   Stream* _diagStream;
   uint8_t _dtrPin;
+
+  size_t _bufferSize;
+  size_t _bufferUsed;
+  uint8_t* _buffer;
 
   void flushInputStream();
 
