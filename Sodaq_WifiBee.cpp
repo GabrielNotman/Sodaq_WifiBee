@@ -46,7 +46,7 @@
 #define RECONNECT_CALLBACK "function(s) print(\"|RC|\") end"
 #define DISCONNECT_CALLBACK "function(s) print(\"|DC|\") end"
 #define SENT_CALLBACK "function(s) print(\"|DS|\") end"
-#define RECEIVED_CALLBACK "function(s, d) file.open(\"last.dat\", \"w+\") file.write(d) file.flush() file.close() print(\"|DR|\" .. string.sub(d,10,13)) end"
+#define RECEIVED_CALLBACK "function(s, d) lastData=d print(\"|DR|\" .. string.sub(d,10,13)) end"
 #define STATUS_CALLBACK "print(\"|\" .. \"STS|\" .. wifi.sta.status() .. \"|\")"
 
 // Timeout constants
@@ -89,14 +89,6 @@ void Sodaq_WifiBee::init(Stream& stream, const uint8_t dtrPin,
   _buffer = (uint8_t*)malloc(_bufferSize);
 
   pinMode(_dtrPin, OUTPUT);
-
-  on();
-
-  diagPrintLn("\r\nDeleting old data..\r\n");
-  println("file.remove(\"last.dat\")");
-  skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
-
-  off();
 }
 
 void Sodaq_WifiBee::connectionSettings(const String APN, const String username,
@@ -195,6 +187,9 @@ bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
     result = parseHTTPResponse(httpCode);
   }
 
+  // Read back any server reponse
+  readServerResponse();
+
   // The connection might have closed automatically
   // Or it failed to open
   closeConnection();
@@ -249,6 +244,9 @@ bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
   if (result) {
     result = parseHTTPResponse(httpCode);
   }
+
+  // Read back any server reponse
+  readServerResponse();
 
   // The connection might have closed automatically
   // Or it failed to open
@@ -314,6 +312,9 @@ bool Sodaq_WifiBee::HTTPPost(const char* server, const uint16_t port,
     result = parseHTTPResponse(httpCode);
   }
 
+  // Read back any server reponse
+  readServerResponse();
+
   // The connection might have closed automatically
   // Or it failed to open
   closeConnection();
@@ -334,17 +335,27 @@ bool Sodaq_WifiBee::openTCP(const char* server, uint16_t port)
 
 bool Sodaq_WifiBee::sendTCPAscii(const String data)
 {
-  return transmitAsciiData(data.c_str());
+  return sendTCPAscii(data.c_str());
 }
 
 bool Sodaq_WifiBee::sendTCPAscii(const char* data)
 {
-  return transmitAsciiData(data);
+  bool result;
+
+  result = transmitAsciiData(data);
+  readServerResponse();
+
+  return result;
 }
 
 bool Sodaq_WifiBee::sendTCPBinary(const uint8_t* data, const size_t length)
 {
-  return transmitBinaryData(data, length);
+  bool result;
+
+  result = transmitBinaryData(data, length);
+  readServerResponse();
+
+  return result;
 }
 
 bool Sodaq_WifiBee::closeTCP()
@@ -365,17 +376,27 @@ bool Sodaq_WifiBee::openUDP(const char* server, uint16_t port)
 
 bool Sodaq_WifiBee::sendUDPAscii(const String data)
 {
-  return transmitAsciiData(data.c_str());
+  return sendUDPAscii(data.c_str());
 }
 
 bool Sodaq_WifiBee::sendUDPAscii(const char* data)
 {
-  return transmitAsciiData(data);
+  bool result;
+
+  result = transmitAsciiData(data);
+  readServerResponse();
+
+  return result;
 }
 
 bool Sodaq_WifiBee::sendUDPBinary(const uint8_t* data, const size_t length)
 {
-  return transmitBinaryData(data, length);
+  bool result;
+
+  result = transmitBinaryData(data, length);
+  readServerResponse();
+
+  return result;
 }
 
 bool Sodaq_WifiBee::closeUDP()
@@ -385,83 +406,54 @@ bool Sodaq_WifiBee::closeUDP()
 
 bool Sodaq_WifiBee::readResponseAscii(char* buffer, const size_t size, size_t& bytesRead)
 {
-  on();
-
-  bool result;
-
-  println("file.open(\"last.dat\", \"r+\")");
-  result = skipTillPrompt("> ", RESPONSE_TIMEOUT);
-
-  if (result) {
-    println("uart.write(0, \"|\" .. \"SOF|\\r\\n\" .. file.read() .. \"|EOF|\")");
-    result = skipTillPrompt("|SOF|\r\n", RESPONSE_TIMEOUT);
+  if (_bufferUsed == 0) {
+    return false;
   }
 
-  if (result) {
-    result = readTillPrompt((uint8_t*)buffer, size - 1, bytesRead, "|EOF|",
-      READBACK_TIMEOUT);
-    buffer[bytesRead] = '\0';
-  }
+  bytesRead = min((size - 1), _bufferUsed);
 
-  off();
-  return result;
+  memcpy(buffer, _buffer, bytesRead);
+  buffer[bytesRead] = '\0';
+
+  return true;
 }
 
 bool Sodaq_WifiBee::readResponseBinary(uint8_t* buffer, const size_t size, size_t& bytesRead)
 {
-  on();
-
-  bool result;
-
-  println("file.open(\"last.dat\", \"r+\")");
-  result = skipTillPrompt("> ", RESPONSE_TIMEOUT);
-
-  if (result) {
-    println("uart.write(0, \"|\" .. \"SOF|\\r\\n\" .. file.read() .. \"|EOF|\")");
-    result = skipTillPrompt("|SOF|\r\n", RESPONSE_TIMEOUT);
+  if (_bufferUsed == 0) {
+    return false;
   }
 
-  if (result) {
-    result = readTillPrompt(buffer, size, bytesRead, "|EOF|",
-        READBACK_TIMEOUT);
-  }
+  bytesRead = min(size, _bufferUsed);
 
-  off();
-  return result;
+  memcpy(buffer, _buffer, bytesRead);
+
+  return true;
 }
 
 bool Sodaq_WifiBee::readHTTPResponse(char* buffer, const size_t size,
     size_t& bytesRead,uint16_t& httpCode)
 {
-  on();
-
-  bool result;
-
-  println("file.open(\"last.dat\", \"r+\")");
-  result = skipTillPrompt("> ", RESPONSE_TIMEOUT);
-
-  if (result) {
-    println("uart.write(0, \"|\" .. \"SOF|\\r\\n\" .. file.read() .. \"|EOF|\")");
-    result = skipTillPrompt("|SOF|\r\n", RESPONSE_TIMEOUT);
+  if (_bufferUsed == 0) {
+    return false;
   }
 
-  if (result) {
-    skipTillPrompt(" ", READBACK_TIMEOUT);
-    result = parseHTTPResponse(httpCode);
+  // The HTTP response code should follow the first ' '
+  char* codePos = strstr((char*)_buffer, " ");
+  if (codePos) {
+    httpCode = atoi(codePos);
   }
 
-  if (result) {
-    result = skipTillPrompt("\r\n\r\n", READBACK_TIMEOUT);
-  }
+  // Add 4 to start from after the double newline
+  char* startPos = strstr((char*)_buffer, "\r\n\r\n") + 4;
 
-  if (result) {
-    result = readTillPrompt((uint8_t*)buffer, size - 1, bytesRead, "|EOF|",
-        READBACK_TIMEOUT);
-    buffer[bytesRead] = '\0';
-  }
+  size_t startIndex = startPos - (char*)_buffer;
+  bytesRead = min((size - 1), (_bufferUsed - startIndex));
 
-  off();
-  return result;
+  memcpy(buffer, startPos, bytesRead);
+  buffer[bytesRead] = '\0';
+
+  return true;
 }
 
 // Stream implementations
@@ -785,6 +777,21 @@ bool Sodaq_WifiBee::transmitBinaryData(const uint8_t* data, const size_t length)
   println("\")");
 
   return skipTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
+}
+
+bool Sodaq_WifiBee::readServerResponse()
+{
+  bool result;
+
+  println("uart.write(0, \"|\" .. \"SOF|\\r\\n\" .. lastData .. \"|EOF|\")");
+  result = skipTillPrompt("|SOF|\r\n", RESPONSE_TIMEOUT);
+  
+  if (result) {
+    result = readTillPrompt(_buffer, _bufferSize, _bufferUsed, "|EOF|",
+      READBACK_TIMEOUT);
+  }
+
+  return result;
 }
 
 bool Sodaq_WifiBee::connect()

@@ -151,6 +151,8 @@ private:
 
   bool transmitBinaryData(const uint8_t* data, const size_t length);
 
+  bool readServerResponse();
+
   bool connect();
 
   bool disconnect();
