@@ -74,6 +74,7 @@ Sodaq_WifiBee::Sodaq_WifiBee()
 
   _dataStream = NULL;
   _diagStream = NULL;
+  _dtrPin = 0xFF;               // initialize to some unlikely value
 }
 
 Sodaq_WifiBee::~Sodaq_WifiBee()
@@ -97,8 +98,8 @@ void Sodaq_WifiBee::init(Stream& stream, const uint8_t dtrPin,
   off();
 }
 
-void Sodaq_WifiBee::connectionSettings(const String APN, const String username,
-    const String password)
+void Sodaq_WifiBee::connectionSettings(const String& APN, const String& username,
+    const String& password)
 {
   connectionSettings(APN.c_str(), username.c_str(), password.c_str());
 }
@@ -135,11 +136,11 @@ void Sodaq_WifiBee::off()
 }
 
 // HTTP methods
-bool Sodaq_WifiBee::HTTPAction(const String server, const uint16_t port,
-    const String method, const String location, const String headers,
-    const String body, uint16_t& httpCode)
+bool Sodaq_WifiBee::HTTPAction(const String& server, const uint16_t port,
+    const String& method, const String& location, const String& headers,
+    const String& body, uint16_t& httpCode)
 {
-  HTTPAction(server.c_str(), port, method.c_str(), location.c_str(),
+  return HTTPAction(server.c_str(), port, method.c_str(), location.c_str(),
       headers.c_str(), body.c_str(), httpCode);
 }
 
@@ -200,10 +201,10 @@ bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
   return result;
 }
 
-bool Sodaq_WifiBee::HTTPGet(const String server, const uint16_t port,
-    const String location, const String headers, uint16_t& httpCode)
+bool Sodaq_WifiBee::HTTPGet(const String& server, const uint16_t port,
+    const String& location, const String& headers, uint16_t& httpCode)
 {
-  HTTPGet(server.c_str(), port, location.c_str(), headers.c_str(), httpCode);
+  return HTTPGet(server.c_str(), port, location.c_str(), headers.c_str(), httpCode);
 }
 
 bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
@@ -255,11 +256,11 @@ bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
   return result;
 }
 
-bool Sodaq_WifiBee::HTTPPost(const String server, const uint16_t port,
-    const String location, const String headers, const String body,
+bool Sodaq_WifiBee::HTTPPost(const String& server, const uint16_t port,
+    const String& location, const String& headers, const String& body,
     uint16_t& httpCode)
 {
-  HTTPPost(server.c_str(), port, location.c_str(), headers.c_str(),
+  return HTTPPost(server.c_str(), port, location.c_str(), headers.c_str(),
       body.c_str(), httpCode);
 }
 
@@ -321,7 +322,7 @@ bool Sodaq_WifiBee::HTTPPost(const char* server, const uint16_t port,
 }
 
 // TCP methods
-bool Sodaq_WifiBee::openTCP(const String server, uint16_t port)
+bool Sodaq_WifiBee::openTCP(const String& server, uint16_t port)
 {
   return openTCP(server.c_str(), port);
 }
@@ -331,7 +332,7 @@ bool Sodaq_WifiBee::openTCP(const char* server, uint16_t port)
   return openConnection(server, port, "net.TCP");
 }
 
-bool Sodaq_WifiBee::sendTCPAscii(const String data)
+bool Sodaq_WifiBee::sendTCPAscii(const String& data)
 {
   return sendTCPAscii(data.c_str());
 }
@@ -352,9 +353,9 @@ bool Sodaq_WifiBee::closeTCP()
 }
 
 // UDP methods
-bool Sodaq_WifiBee::openUDP(const String server, uint16_t port)
+bool Sodaq_WifiBee::openUDP(const String& server, uint16_t port)
 {
-  openUDP(server.c_str(), port);
+  return openUDP(server.c_str(), port);
 }
 
 bool Sodaq_WifiBee::openUDP(const char* server, uint16_t port)
@@ -362,7 +363,7 @@ bool Sodaq_WifiBee::openUDP(const char* server, uint16_t port)
   return openConnection(server, port, "net.UDP");
 }
 
-bool Sodaq_WifiBee::sendUDPAscii(const String data)
+bool Sodaq_WifiBee::sendUDPAscii(const String& data)
 {
   return sendUDPAscii(data.c_str());
 }
@@ -680,8 +681,6 @@ bool Sodaq_WifiBee::openConnection(const char* server, const uint16_t port,
   result = connect();
 
   if (result) {
-    String data;
-
     //Create the connection object
     print("wifiConn=net.createConnection(");
     print(type);
