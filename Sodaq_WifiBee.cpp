@@ -739,8 +739,10 @@ bool Sodaq_WifiBee::transmitAsciiData(const char* data)
   result = skipTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
 
   if (result) {
-    skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT);
-    readServerResponse();
+    result = skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT);
+    if (result) {
+      readServerResponse();
+    }
   }
 
   return result;
@@ -756,8 +758,10 @@ bool Sodaq_WifiBee::transmitBinaryData(const uint8_t* data, const size_t length)
   result = skipTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
 
   if (result) {
-    skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT);
-    readServerResponse();
+    result = skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT);
+    if (result) {
+      readServerResponse();
+    }
   }
 
   return result;
