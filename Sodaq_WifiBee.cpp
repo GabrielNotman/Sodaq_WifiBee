@@ -188,6 +188,8 @@ bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
     if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
       readServerResponse();
       parseHTTPResponse(httpCode);
+    } else {
+      clearBuffer();
     }
   }
   
@@ -241,6 +243,8 @@ bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
     if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
       readServerResponse();
       parseHTTPResponse(httpCode);
+    } else {
+      clearBuffer();
     }
   }
 
@@ -303,6 +307,9 @@ bool Sodaq_WifiBee::HTTPPost(const char* server, const uint16_t port,
     if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
       readServerResponse();
       parseHTTPResponse(httpCode);
+    }
+    else {
+      clearBuffer();
     }
   }
 
@@ -742,6 +749,9 @@ bool Sodaq_WifiBee::transmitAsciiData(const char* data)
     if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
       readServerResponse();
     }
+    else {
+      clearBuffer();
+    }
   }
 
   return result;
@@ -759,6 +769,8 @@ bool Sodaq_WifiBee::transmitBinaryData(const uint8_t* data, const size_t length)
   if (result) {
     if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
       readServerResponse();
+    } else {
+      clearBuffer();
     }
   }
 
@@ -890,6 +902,11 @@ bool Sodaq_WifiBee::parseHTTPResponse(uint16_t& httpCode)
   }
 
   return result;
+}
+
+inline void Sodaq_WifiBee::clearBuffer()
+{
+  _bufferUsed = 0;
 }
 
 inline void Sodaq_WifiBee::_delay(uint32_t ms)

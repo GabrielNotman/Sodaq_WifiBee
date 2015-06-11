@@ -163,6 +163,8 @@ private:
 
   bool parseHTTPResponse(uint16_t& httpCode);
 
+  inline void clearBuffer();
+
   inline void _delay(uint32_t ms);
 };
 
