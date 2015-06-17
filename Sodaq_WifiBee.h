@@ -35,62 +35,64 @@ public:
   void init(Stream& stream, const uint8_t dtrPin, 
     const size_t bufferSize);
 
-  void connectionSettings(const String& APN, const String& username,
-      const String& password);
   void connectionSettings(const char* APN, const char* username,
       const char* password);
+
+  void connectionSettings(const String& APN, const String& username,
+    const String& password);
 
   void setDiag(Stream& stream);
 
   const char* getDeviceType();
 
   void on();
+
   void off();
 
   // HTTP methods
   // These use HTTP/1.1 and add headers for HOST (all)
   // and Content-Length (except HTTPGet())
-  bool HTTPAction(const String& server, const uint16_t port, const String& method,
-      const String& location, const String& headers, const String& body,
-      uint16_t& httpCode);
-
   bool HTTPAction(const char* server, const uint16_t port, const char* method,
       const char* location, const char* headers, const char* body,
       uint16_t& httpCode);
 
-  bool HTTPGet(const String& server, const uint16_t port, const String& location,
-      const String& headers, uint16_t& httpCode);
+  bool HTTPAction(const String& server, const uint16_t port, const String& method,
+    const String& location, const String& headers, const String& body,
+    uint16_t& httpCode);
 
   bool HTTPGet(const char* server, const uint16_t port, const char* location,
       const char* headers, uint16_t& httpCode);
 
-  bool HTTPPost(const String& server, const uint16_t port, const String& location,
-      const String& headers, const String& body, uint16_t& httpCode);
+  bool HTTPGet(const String& server, const uint16_t port, const String& location,
+    const String& headers, uint16_t& httpCode);
 
   bool HTTPPost(const char* server, const uint16_t port, const char* location,
       const char* headers, const char* body, uint16_t& httpCode);
 
-  // TCP methods
-  bool openTCP(const String& server, uint16_t port);
+  bool HTTPPost(const String& server, const uint16_t port, const String& location,
+    const String& headers, const String& body, uint16_t& httpCode);
 
+  // TCP methods
   bool openTCP(const char* server, uint16_t port);
 
-  bool sendTCPAscii(const String& data);
+  bool openTCP(const String& server, uint16_t port);
 
   bool sendTCPAscii(const char* data);
+
+  bool sendTCPAscii(const String& data);
 
   bool sendTCPBinary(const uint8_t* data, const size_t length);
 
   bool closeTCP();
 
   // UDP methods
-  bool openUDP(const String& server, uint16_t port);
-
   bool openUDP(const char* server, uint16_t port);
 
-  bool sendUDPAscii(const String& data);
+  bool openUDP(const String& server, uint16_t port);
 
   bool sendUDPAscii(const char* data);
+
+  bool sendUDPAscii(const String& data);
 
   bool sendUDPBinary(const uint8_t* data, const size_t length);
 
