@@ -91,6 +91,9 @@ void Sodaq_WifiBee::init(Stream& stream, const uint8_t dtrPin,
   _dtrPin = dtrPin;
 
   _bufferSize = bufferSize;
+  if (_buffer) {
+    free(_buffer);
+  }
   _buffer = (uint8_t*)malloc(_bufferSize);
 
   pinMode(_dtrPin, OUTPUT);
