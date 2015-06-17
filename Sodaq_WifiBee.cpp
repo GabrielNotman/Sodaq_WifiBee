@@ -812,10 +812,10 @@ bool Sodaq_WifiBee::connect()
   return waitForIP(WIFI_CONNECT_TIMEOUT);
 }
 
-bool Sodaq_WifiBee::disconnect()
+void Sodaq_WifiBee::disconnect()
 {
   println("wifi.sta.disconnect()");
-  return skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
+  skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
 }
 
 bool Sodaq_WifiBee::getStatus(uint8_t& status)

@@ -157,7 +157,7 @@ private:
 
   bool connect();
 
-  bool disconnect();
+  void disconnect();
 
   bool getStatus(uint8_t& status);
 
