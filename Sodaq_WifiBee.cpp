@@ -62,6 +62,13 @@
 #define WAKE_DELAY 1000
 #define STATUS_DELAY 1000
 
+/*! 
+* Initialises
+* \li `_APN`, `_username` and `_password` to "". \n
+* \li `_bufferSize` and `_bufferUsed` to 0. \n
+* \li `_buffer`, `_dataStream` and `_diagStream` to NULL. \n
+* \li `_dtrPin` to 0xFF.
+*/
 Sodaq_WifiBee::Sodaq_WifiBee()
 {
   _APN = "";
@@ -74,9 +81,14 @@ Sodaq_WifiBee::Sodaq_WifiBee()
 
   _dataStream = NULL;
   _diagStream = NULL;
-  _dtrPin = 0xFF;               // initialize to some unlikely value
+
+  // Initialize to some unlikely value
+  _dtrPin = 0xFF;               
 }
 
+/*! 
+* Frees any memory allocated to `_buffer`.
+*/
 Sodaq_WifiBee::~Sodaq_WifiBee()
 {
   if (_buffer) {
@@ -84,6 +96,12 @@ Sodaq_WifiBee::~Sodaq_WifiBee()
   }
 }
 
+/*! 
+* This method initialises the Sodaq_WifiBee object.\n
+* @param stream A reference to the stream object used for communicating with the WifiBee. 
+* @param dtrPin The IO pin connected to the Bee socket's DTR pin.
+* @param bufferSize The amount of memory to allocate to `_buffer`.
+*/
 void Sodaq_WifiBee::init(Stream& stream, const uint8_t dtrPin,
   const size_t bufferSize)
 {
@@ -101,12 +119,12 @@ void Sodaq_WifiBee::init(Stream& stream, const uint8_t dtrPin,
   off();
 }
 
-void Sodaq_WifiBee::connectionSettings(const String& APN, const String& username,
-    const String& password)
-{
-  connectionSettings(APN.c_str(), username.c_str(), password.c_str());
-}
-
+/*!
+* This method sets the credentials for the Wifi network.
+* @param APN The wifi network's SSID.
+* @param username Unused.
+* @param password The password for the wifi network.
+*/
 void Sodaq_WifiBee::connectionSettings(const char* APN, const char* username,
     const char* password)
 {
@@ -115,16 +133,37 @@ void Sodaq_WifiBee::connectionSettings(const char* APN, const char* username,
   _password = password;
 }
 
+/*!
+* \overload
+*/
+void Sodaq_WifiBee::connectionSettings(const String& APN, const String& username,
+  const String& password)
+{
+  connectionSettings(APN.c_str(), username.c_str(), password.c_str());
+}
+
+/*! 
+* This method sets the reference of the stream object to use for debug/diagnostic purposes.
+* @param stream The reference to the stream object.
+*/
 void Sodaq_WifiBee::setDiag(Stream& stream)
 {
   _diagStream = &stream;
 }
 
+/*! 
+* This method can be used to identify the specific Bee module.
+* @return The literal constant "WifiBee".
+*/
 const char* Sodaq_WifiBee::getDeviceType()
 {
   return "WifiBee";
 }
 
+/*! 
+* This method switches on the WifiBee. \n
+* It is called automatically, as required, by most methods.
+*/
 void Sodaq_WifiBee::on()
 {
   diagPrintLn("\r\nPower ON");
@@ -132,6 +171,10 @@ void Sodaq_WifiBee::on()
   skipForTime(WAKE_DELAY);
 }
 
+/*! 
+* This method switches off the WifiBee. \n
+* It is called automatically, as required, by most methods.
+*/
 void Sodaq_WifiBee::off()
 {
   diagPrintLn("\r\nPower OFF");
@@ -139,14 +182,18 @@ void Sodaq_WifiBee::off()
 }
 
 // HTTP methods
-bool Sodaq_WifiBee::HTTPAction(const String& server, const uint16_t port,
-    const String& method, const String& location, const String& headers,
-    const String& body, uint16_t& httpCode)
-{
-  return HTTPAction(server.c_str(), port, method.c_str(), location.c_str(),
-      headers.c_str(), body.c_str(), httpCode);
-}
-
+/*! 
+* This method constructs and sends a generic HTTP request.
+* @param server The server/host to connect to (IP address or domain).
+* @param port The port to connect to.
+* @param The HTTP method to use. e.g. "GET", "POST" etc.
+* @param location The resource location on the server/host.
+* @param headers Any additional headers, each must be separated by CRLF. Must not end in CRLF. \n
+* HOST & Content-Length headers are added automatically.
+* @param body The body (can be blank) to send with the request. Must not start with a CRLF.
+* @param httpCode The HTTP response code is written to this parameter (if a response is received).
+* @return `true` if a connection is established and the data is sent, `false` otherwise.
+*/
 bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
     const char* method, const char* location, const char* headers,
     const char* body, uint16_t& httpCode)
@@ -204,12 +251,27 @@ bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
   return result;
 }
 
-bool Sodaq_WifiBee::HTTPGet(const String& server, const uint16_t port,
-    const String& location, const String& headers, uint16_t& httpCode)
+/*!
+*\overload
+*/
+bool Sodaq_WifiBee::HTTPAction(const String& server, const uint16_t port,
+  const String& method, const String& location, const String& headers,
+  const String& body, uint16_t& httpCode)
 {
-  return HTTPGet(server.c_str(), port, location.c_str(), headers.c_str(), httpCode);
+  return HTTPAction(server.c_str(), port, method.c_str(), location.c_str(),
+    headers.c_str(), body.c_str(), httpCode);
 }
 
+/*!
+* This method constructs and sends a HTTP GET request.
+* @param server The server/host to connect to (IP address or domain).
+* @param port The port to connect to.
+* @param location The resource location on the server/host.
+* @param headers Any additional headers, each must be separated by CRLF. Must not end in CRLF. \n
+* HOST header is added automatically.
+* @param httpCode The HTTP response code is written to this parameter (if a response is received).
+* @return `true` if a connection is established and the data is sent, `false` otherwise.
+*/
 bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
     const char* location, const char* headers, uint16_t& httpCode)
 {
@@ -259,14 +321,26 @@ bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
   return result;
 }
 
-bool Sodaq_WifiBee::HTTPPost(const String& server, const uint16_t port,
-    const String& location, const String& headers, const String& body,
-    uint16_t& httpCode)
+/*!
+*\overload
+*/
+bool Sodaq_WifiBee::HTTPGet(const String& server, const uint16_t port,
+  const String& location, const String& headers, uint16_t& httpCode)
 {
-  return HTTPPost(server.c_str(), port, location.c_str(), headers.c_str(),
-      body.c_str(), httpCode);
+  return HTTPGet(server.c_str(), port, location.c_str(), headers.c_str(), httpCode);
 }
 
+/*!
+* This method constructs and sends a HTTP POST request.
+* @param server The server/host to connect to (IP address or domain).
+* @param port The port to connect to.
+* @param location The resource location on the server/host.
+* @param headers Any additional headers, each must be separated by CRLF. Must not end in CRLF. \n
+* HOST & Content-Length headers are added automatically.
+* @param body The body (can be blank) to send with the request. Must not start with a CRLF.
+* @param httpCode The HTTP response code is written to this parameter (if a response is received).
+* @return `true` if a connection is established and the data is sent, `false` otherwise.
+*/
 bool Sodaq_WifiBee::HTTPPost(const char* server, const uint16_t port,
     const char* location, const char* headers, const char* body,
     uint16_t& httpCode)
@@ -324,68 +398,144 @@ bool Sodaq_WifiBee::HTTPPost(const char* server, const uint16_t port,
   return result;
 }
 
-// TCP methods
-bool Sodaq_WifiBee::openTCP(const String& server, uint16_t port)
+/*!
+*\overload
+*/
+bool Sodaq_WifiBee::HTTPPost(const String& server, const uint16_t port,
+  const String& location, const String& headers, const String& body,
+  uint16_t& httpCode)
 {
-  return openTCP(server.c_str(), port);
+  return HTTPPost(server.c_str(), port, location.c_str(), headers.c_str(),
+    body.c_str(), httpCode);
 }
 
+// TCP methods
+/*! 
+* This method opens a TCP connection to a remote server.
+* @param server The server/host to connect to (IP address or domain).
+* @param port The port to connect to.
+* @return `true` if the connection was successfully opened, otherwise `false`.
+*/
 bool Sodaq_WifiBee::openTCP(const char* server, uint16_t port)
 {
   return openConnection(server, port, "net.TCP");
 }
 
-bool Sodaq_WifiBee::sendTCPAscii(const String& data)
+/*! 
+* \overload
+*/
+bool Sodaq_WifiBee::openTCP(const String& server, uint16_t port)
 {
-  return sendTCPAscii(data.c_str());
+  return openTCP(server.c_str(), port);
 }
 
+/*! 
+* This method sends an ASCII chunk of data over an open TCP connection.
+* @param data The buffer containing the data to be sent.
+* @return `true` if the data was successfully sent, otherwise `false`.
+*/
 bool Sodaq_WifiBee::sendTCPAscii(const char* data)
 {
   return transmitAsciiData(data);
 }
 
+/*!
+* \overload
+*/
+bool Sodaq_WifiBee::sendTCPAscii(const String& data)
+{
+  return sendTCPAscii(data.c_str());
+}
+
+/*! 
+* This method sends a binary chunk of data over an open TCP connection.
+* @param data The buffer containing the data to be sent.
+* @param length The number of bytes, contained in `data`, to send.
+* @return `true` if the data was successfully sent, otherwise `false`.
+*/
 bool Sodaq_WifiBee::sendTCPBinary(const uint8_t* data, const size_t length)
 {
   return transmitBinaryData(data, length);
 }
 
+/*! 
+* This method closes an open TCP connection.
+* @return `true` if the connection was closed, otherwise `false`. \n
+* It will return `false` if the connection was already closed.
+*/
 bool Sodaq_WifiBee::closeTCP()
 {
   return closeConnection();
 }
 
 // UDP methods
-bool Sodaq_WifiBee::openUDP(const String& server, uint16_t port)
-{
-  return openUDP(server.c_str(), port);
-}
-
+/*!
+* This method opens a UDP connection to a remote server.
+* @param server The server/host to connect to (IP address or domain).
+* @param port The port to connect to.
+* @return `true` if the connection was successfully opened, otherwise `false`.
+*/
 bool Sodaq_WifiBee::openUDP(const char* server, uint16_t port)
 {
   return openConnection(server, port, "net.UDP");
 }
 
-bool Sodaq_WifiBee::sendUDPAscii(const String& data)
+/*!
+* \overload
+*/
+bool Sodaq_WifiBee::openUDP(const String& server, uint16_t port)
 {
-  return sendUDPAscii(data.c_str());
+  return openUDP(server.c_str(), port);
 }
 
+/*!
+* This method sends an ASCII chunk of data over an open UDP connection.
+* @param data The buffer containing the data to be sent.
+* @return `true` if the data was successfully sent, otherwise `false`.
+*/
 bool Sodaq_WifiBee::sendUDPAscii(const char* data)
 {
   return transmitAsciiData(data);
 }
 
+/*!
+* \overload
+*/
+bool Sodaq_WifiBee::sendUDPAscii(const String& data)
+{
+  return sendUDPAscii(data.c_str());
+}
+
+/*!
+* This method sends a binary chunk of data over an open UDP connection.
+* @param data The buffer containing the data to be sent.
+* @param length The number of bytes, contained in `data`, to send.
+* @return `true` if the data was successfully sent, otherwise `false`.
+*/
 bool Sodaq_WifiBee::sendUDPBinary(const uint8_t* data, const size_t length)
 {
   return transmitBinaryData(data, length);
 }
 
+/*!
+* This method closes an open UDP connection.
+* @return `true` if the connection was closed, otherwise `false`. \n
+* It will return `false` if the connection was already closed.
+*/
 bool Sodaq_WifiBee::closeUDP()
 {
   return closeConnection();
 }
 
+/*!
+* This method copies the response data into a supplied buffer. \n
+* The amount of data copied is limited by the size of the supplied buffer. \n
+* Adds a terminating '\0'.
+* @param buffer The buffer to copy the data into.
+* @param size The size of `buffer`.
+* @param bytesRead The number of bytes copied is written to this parameter.
+* @return `false` if there is no data to copy, otherwise `true`.
+*/
 bool Sodaq_WifiBee::readResponseAscii(char* buffer, const size_t size, size_t& bytesRead)
 {
   if (_bufferUsed == 0) {
@@ -400,6 +550,15 @@ bool Sodaq_WifiBee::readResponseAscii(char* buffer, const size_t size, size_t& b
   return true;
 }
 
+/*!
+* This method copies the response data into a supplied buffer. \n
+* The amount of data copied is limited by the size of the supplied buffer. \n
+* Does not add a terminating '\0'.
+* @param buffer The buffer to copy the data into.
+* @param size The size of `buffer`.
+* @param bytesRead The number of bytes copied is written to this parameter. \n
+* @return `false` if there is no data to copy, otherwise `true`.
+*/
 bool Sodaq_WifiBee::readResponseBinary(uint8_t* buffer, const size_t size, size_t& bytesRead)
 {
   if (_bufferUsed == 0) {
@@ -413,8 +572,20 @@ bool Sodaq_WifiBee::readResponseBinary(uint8_t* buffer, const size_t size, size_
   return true;
 }
 
+/*!
+* This method copies the response data into a supplied buffer. \n
+* It skips the response and header lines and only copies the response body. \n
+* The amount of data copied is limited by the size of the supplied buffer. \n
+* Adds a terminating '\0'.
+* @param buffer The buffer to copy the data into.
+* @param size The size of `buffer`.
+* @param bytesRead The number of bytes copied is written to this parameter.
+* @param httpCode The HTTP response code is written to this parameter.
+* @return `false` if there is no data to copy, otherwise `true`.
+* It will return `false` if the body is empty or cannot be determined.
+*/
 bool Sodaq_WifiBee::readHTTPResponse(char* buffer, const size_t size,
-    size_t& bytesRead,uint16_t& httpCode)
+    size_t& bytesRead, uint16_t& httpCode)
 {
   if (_bufferUsed == 0) {
     return false;
@@ -436,6 +607,12 @@ bool Sodaq_WifiBee::readHTTPResponse(char* buffer, const size_t size,
 }
 
 // Stream implementations
+/*!
+* Implementation of Stream::write() \n
+* If `_dataStream != NULL` it calls `_dataStream->write(x)`.
+* @param x parameter to pass to `_dataStream->write()`.
+* @return result of `_dataStream->write(x)` or 0 if `_dataStream == NULL`.
+*/
 size_t Sodaq_WifiBee::write(uint8_t x)
 { 
   if (_dataStream) {
@@ -445,6 +622,11 @@ size_t Sodaq_WifiBee::write(uint8_t x)
   }
 }
 
+/*!
+* Implementation of Stream::available() \n
+* If `_dataStream != NULL` it calls `_dataStream->available()`.
+* @return result of `_dataStream->available()` or 0 if `_dataStream == NULL`.
+*/
 int Sodaq_WifiBee::available()
 {
   if (_dataStream) {
@@ -454,6 +636,11 @@ int Sodaq_WifiBee::available()
   }
 }
 
+/*!
+* Implementation of Stream::peek() \n
+* If `_dataStream != NULL` it calls `_dataStream->peek()`.
+* @return result of `_dataStream->peek()` or -1 if `_dataStream == NULL`.
+*/
 int Sodaq_WifiBee::peek()
 { 
   if (_dataStream) {
@@ -463,6 +650,11 @@ int Sodaq_WifiBee::peek()
   }
 }
 
+/*!
+* Implementation of Stream::read() \n
+* If `_dataStream != NULL` it calls `_dataStream->read()`.
+* @return result of `_dataStream->read()` or -1 if `_dataStream == NULL`.
+*/
 int Sodaq_WifiBee::read()
 { 
   if (_dataStream) {
@@ -472,6 +664,10 @@ int Sodaq_WifiBee::read()
   }
 }
 
+/*!
+* Implementation of Stream::flush() \n
+* If `_dataStream != NULL` it calls `_dataStream->flush()`.
+*/
 void Sodaq_WifiBee::flush() {
   if (_dataStream) {
     _dataStream->flush();
@@ -479,6 +675,10 @@ void Sodaq_WifiBee::flush() {
 }
 
 // Private methods
+/*!
+* This method reads and empties the input buffer of `_dataStream`. \n
+* It attempts to output the data it reads to `_diagStream`. 
+*/
 void Sodaq_WifiBee::flushInputStream()
 {
   while (available()) {
@@ -486,6 +686,13 @@ void Sodaq_WifiBee::flushInputStream()
   }
 }
 
+/*!
+* This method reads and empties the input buffer of '_dataStream'. \n
+* It continues until the specified amount of time has elapsed. \n
+* It attempts to output the data it reads to `_diagStream`.
+* @param timeMS The time limit in milliseconds.
+* @return The number of bytes it read.
+*/
 int Sodaq_WifiBee::skipForTime(const uint32_t timeMS)
 {
   if (!_dataStream) {
@@ -508,6 +715,16 @@ int Sodaq_WifiBee::skipForTime(const uint32_t timeMS)
   return count;
 }
 
+/*!
+* This method reads and empties the input buffer of '_dataStream'. \n
+* It continues until it finds the specified prompt or until \n
+* the specified amount of time has elapsed. \n
+* It attempts to output the data it reads to `_diagStream`.
+* @param prompt The prompt to read until.
+* @param timeMS The time limit in milliseconds.
+* @return `true` if it found the specified prompt within the time \n
+* limit, otherwise `false`.
+*/
 bool Sodaq_WifiBee::skipTillPrompt(const char* prompt, const uint32_t timeMS)
 {
   if (!_dataStream) {
@@ -543,6 +760,16 @@ bool Sodaq_WifiBee::skipTillPrompt(const char* prompt, const uint32_t timeMS)
   return result;
 }
 
+/*!
+* This method reads one character from the input buffer of '_dataStream'. \n
+* It continues until it reads one character or until the specified amount \n
+* of time has elapsed. \n
+* It attempts to output the data it read to `_diagStream`.
+* @param data The character read is written to this parameter.
+* @param timeMS The time limit in milliseconds.
+* @return `true` if it successfully read one character within the \n
+* time limit, otherwise `false`.
+*/
 bool Sodaq_WifiBee::readChar(char& data, const uint32_t timeMS)
 {
   if (!_dataStream) {
@@ -566,6 +793,20 @@ bool Sodaq_WifiBee::readChar(char& data, const uint32_t timeMS)
   return result;
 }
 
+/*!
+* This method reads and empties the input buffer of '_dataStream'. \n
+* It continues until it finds the specified prompt or until \n
+* the specified amount of time has elapsed. \n
+* It copies the read data into the buffer supplied. \n
+* It attempts to output the data it reads to `_diagStream`.
+* @param buffer The buffer to copy the data into.
+* @param size The size of `buffer`.
+* @param bytesStored The number of bytes copied is written to this parameter.
+* @param prompt The prompt to read until.
+* @param timeMS The time limit in milliseconds.
+* @return `true` if it found the specified prompt within the time \n
+* limit, otherwise `false`.
+*/
 bool Sodaq_WifiBee::readTillPrompt(uint8_t* buffer, const size_t size,
     size_t& bytesStored, const char* prompt, const uint32_t timeMS)
 {
@@ -616,6 +857,11 @@ bool Sodaq_WifiBee::readTillPrompt(uint8_t* buffer, const size_t size,
   return result;
 }
 
+/*!
+* This method writes escaped ASCII data to `_dataStream`. \n
+* It only escapes specific LUA characters.
+* @param data The buffer containing the ASCII data to send.
+*/
 void Sodaq_WifiBee::sendEscapedAscii(const char* data)
 {
   size_t length = strlen(data);
@@ -666,6 +912,12 @@ void Sodaq_WifiBee::sendEscapedAscii(const char* data)
   }
 }
 
+/*!
+* This method writes escaped binary data to `_dataStream`. \n
+* It numerically escpaes every byte.
+* @param data The buffer containing the binary data to send.
+* @param length The size of `data`.
+*/
 void Sodaq_WifiBee::sendEscapedBinary(const uint8_t* data, const size_t length)
 {
   for (size_t i = 0; i < length; i++) {
@@ -674,6 +926,14 @@ void Sodaq_WifiBee::sendEscapedBinary(const uint8_t* data, const size_t length)
   }
 }
 
+/*!
+* This method opens a TCP or UDP connection to a remote server.
+* @param server The server/host to connect to (IP address or domain).
+* @param port The port to connect to.
+* @param type The type of connection to establish, TCP or UDP.
+* @return `true` if the connection was successfully established, \n
+* otherwise `false`.
+*/
 bool Sodaq_WifiBee::openConnection(const char* server, const uint16_t port,
     const char* type)
 {
@@ -727,6 +987,11 @@ bool Sodaq_WifiBee::openConnection(const char* server, const uint16_t port,
   return result;
 }
 
+/*!
+* This method closes a TCP or UDP connection to a remote server.
+* @return `true` if the connection was closed, otherwise `false`. \n
+* It will return `false` if the connection was already closed.
+*/
 bool Sodaq_WifiBee::closeConnection()
 {
   bool result;
@@ -738,6 +1003,12 @@ bool Sodaq_WifiBee::closeConnection()
   return result;
 }
 
+/*!
+* This method transmits ASCII data over an open TCP or UDP connection.
+* @param data The data to transmit.
+* @return `true` if the data was successfully transmitted, \n
+* otherwise `false`.
+*/
 bool Sodaq_WifiBee::transmitAsciiData(const char* data)
 {
   print("wifiConn:send(\"");
@@ -759,6 +1030,12 @@ bool Sodaq_WifiBee::transmitAsciiData(const char* data)
   return result;
 }
 
+/*!
+* This method transmits binary data over an open TCP or UDP connection.
+* @param data The data to transmit.
+* @return `true` if the data was successfully transmitted, \n
+* otherwise `false`.
+*/
 bool Sodaq_WifiBee::transmitBinaryData(const uint8_t* data, const size_t length)
 {
   print("wifiConn:send(\"");
@@ -779,6 +1056,11 @@ bool Sodaq_WifiBee::transmitBinaryData(const uint8_t* data, const size_t length)
   return result;
 }
 
+/*!
+* This method reads and stores the received response data.
+* @return `true` on if it successfully reads the whole response, \n
+* otherwise 'false'.
+*/
 bool Sodaq_WifiBee::readServerResponse()
 {
   bool result;
@@ -794,6 +1076,11 @@ bool Sodaq_WifiBee::readServerResponse()
   return result;
 }
 
+/*!
+* This method joins the WifiBee to the network.
+* @return `true` if the network was successfully joined, \n
+* otherwise `false`.
+*/
 bool Sodaq_WifiBee::connect()
 {
   println("wifi.setmode(wifi.STATION)");
@@ -812,12 +1099,21 @@ bool Sodaq_WifiBee::connect()
   return waitForIP(WIFI_CONNECT_TIMEOUT);
 }
 
+/*!
+* This method disconnects the WifiBee from the network.
+*/
 void Sodaq_WifiBee::disconnect()
 {
   println("wifi.sta.disconnect()");
   skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
 }
 
+/*!
+* This method checks the connection status of the WifiBee.
+* @param status The status code (0..5) is written to this parameter.
+* @return `true` if it successfully read the status code, \n
+* otherwise `false`.
+*/
 bool Sodaq_WifiBee::getStatus(uint8_t& status)
 {
   bool result;
@@ -842,6 +1138,13 @@ bool Sodaq_WifiBee::getStatus(uint8_t& status)
   return result;
 }
 
+/*! 
+* This method repeatedly calls getStatus() to check the connection status.\n
+* It continues until it the network has been joined or until the \n
+* specified time limit has elapsed. \n
+* @param timeMS The time limit in milliseconds.
+* @return `true` if the Wifi network was joined, otherwise `false`.
+*/
 bool Sodaq_WifiBee::waitForIP(const uint32_t timeMS)
 {
   bool result = false;
@@ -890,6 +1193,11 @@ bool Sodaq_WifiBee::waitForIP(const uint32_t timeMS)
   return result;
 }
 
+/*! This methods parses the HTTP response code from the data received.
+* @param httpCode The response code is written into this parameter.
+* @return `true` if the conversion returns a non-zero value, \n
+* otherwise `false` .
+*/
 bool Sodaq_WifiBee::parseHTTPResponse(uint16_t& httpCode)
 {
   bool result = false;
@@ -908,11 +1216,15 @@ bool Sodaq_WifiBee::parseHTTPResponse(uint16_t& httpCode)
   return result;
 }
 
+/*! This inline method clears the stored buffer.
+*/
 inline void Sodaq_WifiBee::clearBuffer()
 {
   _bufferUsed = 0;
 }
 
+/*! This inline method is used throughout the class to add a delay.
+*/
 inline void Sodaq_WifiBee::_delay(uint32_t ms)
 {
   delay(ms);
