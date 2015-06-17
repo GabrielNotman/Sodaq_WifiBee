@@ -899,7 +899,9 @@ bool Sodaq_WifiBee::parseHTTPResponse(uint16_t& httpCode)
     char* codePos = strstr((char*)_buffer, " ");
     if (codePos) {
       httpCode = atoi(codePos);
-      result = true;
+      if (httpCode != 0) {
+        result = true;
+      }
     }
   }
 
