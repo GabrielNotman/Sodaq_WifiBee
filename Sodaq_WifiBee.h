@@ -117,17 +117,17 @@ public:
   void flush();
 
 private:
-  String _APN;
-  String _username;
-  String _password;
+  String _APN;  /*!< The wifi network's SSID. */
+  String _username;  /*!< Unused */
+  String _password;  /*!< The password for the wifi network. */
 
-  Stream* _dataStream;
-  Stream* _diagStream;
-  uint8_t _dtrPin;
+  Stream* _dataStream;  /*!< A reference to the stream object used for communicating with the WifiBee. */
+  Stream* _diagStream; /*!< A reference to an optional stream object used for debugging. */
+  uint8_t _dtrPin;  /*!< The Bee socket's DTR pin. */
 
-  size_t _bufferSize;
-  size_t _bufferUsed;
-  uint8_t* _buffer;
+  size_t _bufferSize;  /*!< The allocated size of `_buffer`. */
+  size_t _bufferUsed;  /*!< The current amount of `_buffer` which is in use. */
+  uint8_t* _buffer;  /*!< The buffer used to store received data. */
 
   void flushInputStream();
 
