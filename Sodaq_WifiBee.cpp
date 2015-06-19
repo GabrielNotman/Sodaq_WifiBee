@@ -183,7 +183,7 @@ void Sodaq_WifiBee::off()
 * @param port The port to connect to.
 * @param The HTTP method to use. e.g. "GET", "POST" etc.
 * @param location The resource location on the server/host.
-* @param headers Any additional headers, each must be separated by CRLF. Must not end in CRLF. 
+* @param headers Any additional headers, each must be followed by a CRLF.
 * HOST & Content-Length headers are added automatically.
 * @param body The body (can be blank) to send with the request. Must not start with a CRLF.
 * @param httpCode The HTTP response code is written to this parameter (if a response is received).
@@ -217,7 +217,7 @@ bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
     print("\\r\\n");
 
     sendEscapedAscii(headers);
-    print("\\r\\n\\r\\n");
+    print("\\r\\n");
 
     sendEscapedAscii(body);
 
@@ -262,7 +262,7 @@ bool Sodaq_WifiBee::HTTPAction(const String& server, const uint16_t port,
 * @param server The server/host to connect to (IP address or domain).
 * @param port The port to connect to.
 * @param location The resource location on the server/host.
-* @param headers Any additional headers, each must be separated by CRLF. Must not end in CRLF. 
+* @param headers Any additional headers, each must be followed by a CRLF.
 * HOST header is added automatically.
 * @param httpCode The HTTP response code is written to this parameter (if a response is received).
 * @return `true` if a connection is established and the data is sent, `false` otherwise.
@@ -289,7 +289,7 @@ bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
     print("\\r\\n");
 
     sendEscapedAscii(headers);
-    print("\\r\\n\\r\\n");
+    print("\\r\\n");
 
     println("\")");
   }
@@ -330,7 +330,7 @@ bool Sodaq_WifiBee::HTTPGet(const String& server, const uint16_t port,
 * @param server The server/host to connect to (IP address or domain).
 * @param port The port to connect to.
 * @param location The resource location on the server/host.
-* @param headers Any additional headers, each must be separated by CRLF. Must not end in CRLF. 
+* @param headers Any additional headers, each must be followed by a CRLF. 
 * HOST & Content-Length headers are added automatically.
 * @param body The body (can be blank) to send with the request. Must not start with a CRLF.
 * @param httpCode The HTTP response code is written to this parameter (if a response is received).
@@ -363,7 +363,7 @@ bool Sodaq_WifiBee::HTTPPost(const char* server, const uint16_t port,
     print("\\r\\n");
 
     sendEscapedAscii(headers);
-    print("\\r\\n\\r\\n");
+    print("\\r\\n");
 
     sendEscapedAscii(body);
 
