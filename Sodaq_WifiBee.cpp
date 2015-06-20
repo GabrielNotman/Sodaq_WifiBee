@@ -30,6 +30,9 @@
 #define diagPrintLn(...)
 #endif
 
+// Lua command size limit
+#define LUA_COMMAND_MAX 255
+
 // Lua prompts
 #define LUA_PROMPT "\r\n> "
 #define CONNECT_PROMPT "|C|"
@@ -621,6 +624,24 @@ size_t Sodaq_WifiBee::write(uint8_t x)
     return 0;
   }
 }
+
+/*!
+* Implementation of Stream::write(buffer, size) \n
+* If `_dataStream != NULL` it calls `_dataStream->write(buffer, size)`.
+* @param buffer Data to pass to `_dataStream->write()`.
+* @param size Size of `buffer\ to pass to `_dataStream->write()`.
+* @return result of `_dataStream->write(buffer, size)` or 0 if `_dataStream == NULL`.
+*/
+size_t Sodaq_WifiBee::write(const uint8_t *buffer, size_t size)
+{
+  if (_dataStream) {
+    return _dataStream->write(buffer, size);
+  }
+  else {
+    return 0;
+  }
+}
+
 
 /*!
 * Implementation of Stream::available() \n
@@ -1216,6 +1237,30 @@ bool Sodaq_WifiBee::parseHTTPResponse(uint16_t& httpCode)
   }
 
   return result;
+}
+
+/*!
+* This method uploads data to the send buffer.
+* It sends it in chunks so to comply with the LUA command limits.
+*/
+void Sodaq_WifiBee::sendChunkedData(const char* data)
+{
+  size_t length = strlen(data);
+  size_t overhead = 9; // sb=sb..""
+  size_t chunkSize = LUA_COMMAND_MAX - overhead;
+
+  //Upload the whole chunks
+  for (size_t i = 0; i < (length / chunkSize); i++) {
+    print("sb=sb..\"");
+    write((uint8_t*)data[i * chunkSize], chunkSize);
+    println("\"");
+  }
+
+  //Upload the remainder
+  size_t remainder = length % chunkSize;
+  print("sb=sb..\"");
+  write((uint8_t*)data[length - remainder], remainder);
+  println("\"");  
 }
 
 /*! 
