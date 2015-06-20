@@ -75,11 +75,11 @@ public:
 
   bool openTCP(const String& server, uint16_t port);
 
-  bool sendTCPAscii(const char* data);
+  bool sendTCPAscii(const char* data, const bool waitForResponse = true);
 
-  bool sendTCPAscii(const String& data);
+  bool sendTCPAscii(const String& data, const bool waitForResponse = true);
 
-  bool sendTCPBinary(const uint8_t* data, const size_t length);
+  bool sendTCPBinary(const uint8_t* data, const size_t length, const bool waitForResponse = true);
 
   bool closeTCP();
 
@@ -88,11 +88,11 @@ public:
 
   bool openUDP(const String& server, uint16_t port);
 
-  bool sendUDPAscii(const char* data);
+  bool sendUDPAscii(const char* data, const bool waitForResponse = true);
 
-  bool sendUDPAscii(const String& data);
+  bool sendUDPAscii(const String& data, const bool waitForResponse = true);
 
-  bool sendUDPBinary(const uint8_t* data, const size_t length);
+  bool sendUDPBinary(const uint8_t* data, const size_t length, const bool waitForResponse = true);
 
   bool closeUDP();
 
@@ -147,9 +147,9 @@ private:
 
   bool closeConnection();
 
-  bool transmitAsciiData(const char* data);
+  bool transmitAsciiData(const char* data, const bool waitForResponse);
 
-  bool transmitBinaryData(const uint8_t* data, const size_t length);
+  bool transmitBinaryData(const uint8_t* data, const size_t length, const bool waitForResponse);
 
   bool readServerResponse();
 

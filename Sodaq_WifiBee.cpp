@@ -427,30 +427,32 @@ bool Sodaq_WifiBee::openTCP(const String& server, uint16_t port)
 /*! 
 * This method sends an ASCII chunk of data over an open TCP connection.
 * @param data The buffer containing the data to be sent.
+* @param waitForResponse Expect/wait for a reply from the server, default = true.
 * @return `true` if the data was successfully sent, otherwise `false`.
 */
-bool Sodaq_WifiBee::sendTCPAscii(const char* data)
+bool Sodaq_WifiBee::sendTCPAscii(const char* data, const bool waitForResponse)
 {
-  return transmitAsciiData(data);
+  return transmitAsciiData(data, waitForResponse);
 }
 
 /*!
 * \overload
 */
-bool Sodaq_WifiBee::sendTCPAscii(const String& data)
+bool Sodaq_WifiBee::sendTCPAscii(const String& data, const bool waitForResponse)
 {
-  return sendTCPAscii(data.c_str());
+  return sendTCPAscii(data.c_str(), waitForResponse);
 }
 
 /*! 
 * This method sends a binary chunk of data over an open TCP connection.
 * @param data The buffer containing the data to be sent.
 * @param length The number of bytes, contained in `data`, to send.
+* @param waitForResponse Expect/wait for a reply from the server, default = true.
 * @return `true` if the data was successfully sent, otherwise `false`.
 */
-bool Sodaq_WifiBee::sendTCPBinary(const uint8_t* data, const size_t length)
+bool Sodaq_WifiBee::sendTCPBinary(const uint8_t* data, const size_t length, const bool waitForResponse)
 {
-  return transmitBinaryData(data, length);
+  return transmitBinaryData(data, length, waitForResponse);
 }
 
 /*! 
@@ -486,30 +488,32 @@ bool Sodaq_WifiBee::openUDP(const String& server, uint16_t port)
 /*!
 * This method sends an ASCII chunk of data over an open UDP connection.
 * @param data The buffer containing the data to be sent.
+* @param waitForResponse Expect/wait for a reply from the server, default = true.
 * @return `true` if the data was successfully sent, otherwise `false`.
 */
-bool Sodaq_WifiBee::sendUDPAscii(const char* data)
+bool Sodaq_WifiBee::sendUDPAscii(const char* data, const bool waitForResponse)
 {
-  return transmitAsciiData(data);
+  return transmitAsciiData(data, waitForResponse);
 }
 
 /*!
 * \overload
 */
-bool Sodaq_WifiBee::sendUDPAscii(const String& data)
+bool Sodaq_WifiBee::sendUDPAscii(const String& data, const bool waitForResponse)
 {
-  return sendUDPAscii(data.c_str());
+  return sendUDPAscii(data.c_str(), waitForResponse);
 }
 
 /*!
 * This method sends a binary chunk of data over an open UDP connection.
 * @param data The buffer containing the data to be sent.
 * @param length The number of bytes, contained in `data`, to send.
+* @param waitForResponse Expect/wait for a reply from the server, default = true.
 * @return `true` if the data was successfully sent, otherwise `false`.
 */
-bool Sodaq_WifiBee::sendUDPBinary(const uint8_t* data, const size_t length)
+bool Sodaq_WifiBee::sendUDPBinary(const uint8_t* data, const size_t length, const bool waitForResponse)
 {
-  return transmitBinaryData(data, length);
+  return transmitBinaryData(data, length, waitForResponse);
 }
 
 /*!
@@ -1000,10 +1004,11 @@ bool Sodaq_WifiBee::closeConnection()
 /*!
 * This method transmits ASCII data over an open TCP or UDP connection.
 * @param data The data to transmit.
+* @param waitForResponse Expect/wait for a reply from the server, default = true.
 * @return `true` if the data was successfully transmitted,
 * otherwise `false`.
 */
-bool Sodaq_WifiBee::transmitAsciiData(const char* data)
+bool Sodaq_WifiBee::transmitAsciiData(const char* data, const bool waitForResponse)
 {
   print("wifiConn:send(\"");
   sendEscapedAscii(data);
@@ -1012,7 +1017,7 @@ bool Sodaq_WifiBee::transmitAsciiData(const char* data)
   bool result;
   result = skipTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
 
-  if (result) {
+  if (result && waitForResponse) {
     if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
       readServerResponse();
     }
@@ -1027,10 +1032,11 @@ bool Sodaq_WifiBee::transmitAsciiData(const char* data)
 /*!
 * This method transmits binary data over an open TCP or UDP connection.
 * @param data The data to transmit.
+* @param waitForResponse Expect/wait for a reply from the server, default = true.
 * @return `true` if the data was successfully transmitted,
 * otherwise `false`.
 */
-bool Sodaq_WifiBee::transmitBinaryData(const uint8_t* data, const size_t length)
+bool Sodaq_WifiBee::transmitBinaryData(const uint8_t* data, const size_t length, const bool waitForResponse)
 {
   print("wifiConn:send(\"");
   sendEscapedBinary(data, length);
@@ -1039,7 +1045,7 @@ bool Sodaq_WifiBee::transmitBinaryData(const uint8_t* data, const size_t length)
   bool result;
   result = skipTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
 
-  if (result) {
+  if (result && waitForResponse) {
     if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
       readServerResponse();
     } else {
