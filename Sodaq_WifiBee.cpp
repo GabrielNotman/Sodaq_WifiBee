@@ -1147,6 +1147,7 @@ bool Sodaq_WifiBee::getStatus(uint8_t& status)
 
   if (result) {
     result = readChar(statusCode, RESPONSE_TIMEOUT);
+    skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
   }
 
   if (result) {
@@ -1178,10 +1179,6 @@ bool Sodaq_WifiBee::waitForIP(const uint32_t timeMS)
     skipForTime(STATUS_DELAY);
     getStatus(status);
   }
-
-  // Without this small delay the lua interpreter sometimes
-  // gets confused. This also flushes the incoming buffer
-  skipForTime(100);
 
   //0 = Idle
   //1 = Connecting
