@@ -166,6 +166,10 @@ private:
   inline void clearBuffer();
 
   inline void _delay(uint32_t ms);
+
+  inline void createSendBuffer();
+
+  inline void transmitSendBuffer();
 };
 
 #endif // SODAQ_WIFI_BEE_H_

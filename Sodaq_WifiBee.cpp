@@ -608,9 +608,9 @@ bool Sodaq_WifiBee::readHTTPResponse(char* buffer, const size_t size,
 
 // Stream implementations
 /*!
-* Implementation of Stream::write() \n
+* Implementation of Stream::write(x) \n
 * If `_dataStream != NULL` it calls `_dataStream->write(x)`.
-* @param x parameter to pass to `_dataStream->write()`.
+* @param x Data to pass to `_dataStream->write(x)`.
 * @return result of `_dataStream->write(x)` or 0 if `_dataStream == NULL`.
 */
 size_t Sodaq_WifiBee::write(uint8_t x)
@@ -1194,7 +1194,8 @@ bool Sodaq_WifiBee::waitForIP(const uint32_t timeMS)
   return result;
 }
 
-/*! This methods parses the HTTP response code from the data received.
+/*! 
+* This method parses the HTTP response code from the data received.
 * @param httpCode The response code is written into this parameter.
 * @return `true` if the conversion returns a non-zero value,
 * otherwise `false` .
@@ -1217,16 +1218,38 @@ bool Sodaq_WifiBee::parseHTTPResponse(uint16_t& httpCode)
   return result;
 }
 
-/*! This inline method clears the internal buffer.
+/*! 
+* This inline method clears the internal buffer.
 */
 inline void Sodaq_WifiBee::clearBuffer()
 {
   _bufferUsed = 0;
 }
 
-/*! This inline method is used throughout the class to add a delay.
+/*! 
+* This inline method is used throughout the class to add a delay.
 */
 inline void Sodaq_WifiBee::_delay(uint32_t ms)
 {
   delay(ms);
+}
+
+/*!
+* This inline method creates a buffer on the NodeMCU to be
+* loaded with data to be sent.
+*/
+inline void Sodaq_WifiBee::createSendBuffer()
+{
+  println("sendBuffer = \"\"");
+  skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
+}
+
+/*!
+* This inline method transmits the send buffer on the NodeMCU
+* over an open TCP or UDP connection.
+*/
+inline void Sodaq_WifiBee::transmitSendBuffer()
+{
+  println("wifiConn:send(sendBuffer)");
+  skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
 }
