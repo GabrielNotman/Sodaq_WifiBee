@@ -294,9 +294,9 @@ bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
     sendAscii(server);
     sendAscii(":");
 
-    char portBuff[6];
-    itoa(port, portBuff, 10);
-    sendAscii(portBuff);
+    char buff[6];
+    itoa(port, buff, 10);
+    sendAscii(buff);
     sendAscii("\\r\\n");
 
     sendEscapedAscii(headers);
@@ -367,16 +367,14 @@ bool Sodaq_WifiBee::HTTPPost(const char* server, const uint16_t port,
     sendAscii(server);
     sendAscii(":");
 
-    char portBuff[6];
-    itoa(port, portBuff, 10);
-    sendAscii(portBuff);
+    char buff[11];
+    itoa(port, buff, 10);
+    sendAscii(buff);
     sendAscii("\\r\\n");
 
     sendAscii("Content-Length: ");
-    
-    char bodyLenBuff[11];
-    itoa(strlen(body), bodyLenBuff, 10);
-    sendAscii(bodyLenBuff);
+    itoa(strlen(body), buff, 10);
+    sendAscii(buff);
     sendAscii("\\r\\n");
 
     sendEscapedAscii(headers);
