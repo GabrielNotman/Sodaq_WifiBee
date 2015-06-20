@@ -42,13 +42,14 @@
 #define EOF_PROMPT "|EOF|"
 
 // Lua connection callback scripts
-#define CONNECT_CALLBACK "function(s) print(\"|C|\") end"
-#define RECONNECT_CALLBACK "function(s) print(\"|RC|\") end"
-#define DISCONNECT_CALLBACK "function(s) print(\"|DC|\") end"
-#define SENT_CALLBACK "function(s) print(\"|DS|\") end"
-#define RECEIVED_CALLBACK "function(s, d) lastData=d print(\"|DR|\") end"
-#define STATUS_CALLBACK "print(\"|\" .. \"STS|\" .. wifi.sta.status() .. \"|\")"
-#define READ_BACK "uart.write(0, \"|\" .. \"SOF|\" .. lastData .. \"|EOF|\")"
+#define CONNECT_CALLBACK "function(s) print(\"|C|\") end" // Max length 228
+#define RECONNECT_CALLBACK "function(s) print(\"|RC|\") end" // Max length 226
+#define DISCONNECT_CALLBACK "function(s) print(\"|DC|\") end" // Max length 225
+#define SENT_CALLBACK "function(s) print(\"|DS|\") end" // Max length 234
+#define RECEIVED_CALLBACK "function(s, d) lastData=d print(\"|DR|\") end" // Max length 231
+
+#define STATUS_CALLBACK "print(\"|\" .. \"STS|\" .. wifi.sta.status() .. \"|\")" // Max length 255
+#define READ_BACK "uart.write(0, \"|\" .. \"SOF|\" .. lastData .. \"|EOF|\")" // Max length 255
 
 // Timeout constants
 #define RESPONSE_TIMEOUT 2000
