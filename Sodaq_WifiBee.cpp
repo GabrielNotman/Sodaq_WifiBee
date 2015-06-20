@@ -877,20 +877,40 @@ bool Sodaq_WifiBee::readTillPrompt(uint8_t* buffer, const size_t size,
 void Sodaq_WifiBee::sendAscii(const char* data)
 {
   size_t length = strlen(data);
-  size_t overhead = 9; // sb=sb..""
-  size_t chunkSize = LUA_COMMAND_MAX - overhead;
+  size_t overhead = 9; // sb=sb.."" 
+  size_t chunkSize = LUA_COMMAND_MAX - overhead - 1; //-1 for escape sequences
 
   size_t index = 0;
   size_t count;
+  size_t slashCount;
+
 
   while (index < length) {
     count = 0;
+    slashCount = 0;
     print("sb=sb..\"");
     while ((count < chunkSize) && (index < length)) {
       print(data[index]);
+
+      //Keep track of the number of '\' symbols up to the index
+      if (data[index] == '\\') {
+        slashCount++;
+      }  else {
+        slashCount = 0;
+      }
+
       count++;
       index++;
     }
+
+    //If we have an odd number of slashes send one more character
+    //so that we don't divide an escape sequence.
+    if (((slashCount % 2) == 1) && (index < length))
+    {
+      print(data[index]);
+      index++;
+    }
+
     println("\"");
     skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
   }
