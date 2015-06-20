@@ -1252,15 +1252,17 @@ void Sodaq_WifiBee::sendChunkedData(const char* data)
   //Upload the whole chunks
   for (size_t i = 0; i < (length / chunkSize); i++) {
     print("sb=sb..\"");
-    write((uint8_t*)data[i * chunkSize], chunkSize);
+    write((uint8_t*)&data[i * chunkSize], chunkSize);
     println("\"");
+    skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
   }
 
   //Upload the remainder
   size_t remainder = length % chunkSize;
   print("sb=sb..\"");
-  write((uint8_t*)data[length - remainder], remainder);
-  println("\"");  
+  write((uint8_t*)&data[length - remainder], remainder);
+  println("\"");
+  skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
 }
 
 /*! 
@@ -1285,7 +1287,7 @@ inline void Sodaq_WifiBee::_delay(uint32_t ms)
 */
 inline void Sodaq_WifiBee::createSendBuffer()
 {
-  println("sendBuffer = \"\"");
+  println("sb=\"\"");
   skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
 }
 
@@ -1295,6 +1297,6 @@ inline void Sodaq_WifiBee::createSendBuffer()
 */
 inline void Sodaq_WifiBee::transmitSendBuffer()
 {
-  println("wifiConn:send(sendBuffer)");
+  println("wifiConn:send(sb)");
   skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
 }
