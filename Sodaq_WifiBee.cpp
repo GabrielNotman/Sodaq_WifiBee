@@ -893,64 +893,92 @@ void Sodaq_WifiBee::sendAscii(const char* data)
 void Sodaq_WifiBee::sendEscapedAscii(const char* data)
 {
   size_t length = strlen(data);
+  size_t overhead = 9; // sb=sb..""
+  size_t chunkSize = (LUA_COMMAND_MAX - overhead) / 2; //Worst case everything is escaped
 
-  //Todo add other lua escape characters?
-  for (size_t i = 0; i < length; i++) {
-    switch (data[i]) {
-    case '\a':
-      print("\\a");
-      break;
-    case '\b':
-      print("\\b");
-      break;
-    case '\f':
-      print("\\f");
-      break;
-    case '\n':
-      print("\\n");
-      break;
-    case '\r':
-      print("\\r");
-      break;
-    case '\t':
-      print("\\t");
-      break;
-    case '\v':
-      print("\\v");
-      break;
-    case '\\':
-      print("\\\\");
-      break;
-    case '\"':
-      print("\\\"");
-      break;
-    case '\'':
-      print("\\\'");
-      break;
-    case '[':
-      print("\\[");
-      break;
-    case ']':
-      print("\\]");
-      break;
-    default:
-      print(data[i]);
-      break;
+  size_t index = 0;
+  size_t count;
+
+  while (index < length) {
+    count = 0;
+    print("sb=sb..\"");
+    while ((count < chunkSize) && (index < length)) {
+      switch (data[index]) {
+      case '\a':
+        print("\\a");
+        break;
+      case '\b':
+        print("\\b");
+        break;
+      case '\f':
+        print("\\f");
+        break;
+      case '\n':
+        print("\\n");
+        break;
+      case '\r':
+        print("\\r");
+        break;
+      case '\t':
+        print("\\t");
+        break;
+      case '\v':
+        print("\\v");
+        break;
+      case '\\':
+        print("\\\\");
+        break;
+      case '\"':
+        print("\\\"");
+        break;
+      case '\'':
+        print("\\\'");
+        break;
+      case '[':
+        print("\\[");
+        break;
+      case ']':
+        print("\\]");
+        break;
+      default:
+        print(data[index]);
+        break;
+      }
+
+      count++;
+      index++;
     }
+    println("\"");
+    skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
   }
 }
 
 /*!
-* This method writes escaped binary data to `_dataStream`.
+* This method uploades escaped binary data to the send buffer.
 * It numerically escapes every byte.
 * @param data The buffer containing the binary data to send.
 * @param length The size of `data`.
 */
 void Sodaq_WifiBee::sendEscapedBinary(const uint8_t* data, const size_t length)
 {
-  for (size_t i = 0; i < length; i++) {
-    print("\\");
-    print(data[i]);
+  size_t overhead = 9; // sb=sb..""
+  size_t chunkSize = (LUA_COMMAND_MAX - overhead) / 4; //Up to 4 characters per byte
+
+  size_t index = 0;
+  size_t count;
+
+  while (index < length) {
+    count = 0;
+    print("sb=sb..\"");
+    while ((count < chunkSize) && (index < length)) {
+      print("\\");
+      print(data[index]);
+
+      count++;
+      index++;
+    }
+    println("\"");
+    skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
   }
 }
 
@@ -1040,9 +1068,9 @@ bool Sodaq_WifiBee::closeConnection()
 */
 bool Sodaq_WifiBee::transmitAsciiData(const char* data, const bool waitForResponse)
 {
-  print("wifiConn:send(\"");
+  createSendBuffer();
   sendEscapedAscii(data);
-  println("\")");
+  transmitSendBuffer();
 
   bool result;
   result = skipTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
@@ -1068,9 +1096,9 @@ bool Sodaq_WifiBee::transmitAsciiData(const char* data, const bool waitForRespon
 */
 bool Sodaq_WifiBee::transmitBinaryData(const uint8_t* data, const size_t length, const bool waitForResponse)
 {
-  print("wifiConn:send(\"");
+  createSendBuffer();
   sendEscapedBinary(data, length);
-  println("\")");
+  transmitSendBuffer();
 
   bool result;
   result = skipTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
