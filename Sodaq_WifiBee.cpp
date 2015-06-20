@@ -203,29 +203,33 @@ bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
   result = openConnection(server, port, "net.TCP");
 
   if (result) {
-    print("wifiConn:send(\"");
+    createSendBuffer();
 
-    print(method);
-    print(" ");
-    print(location);
-    print(" HTTP/1.1\\r\\n");
+    sendAscii(method);
+    sendAscii(" ");
+    sendAscii(location);
+    sendAscii(" HTTP/1.1\\r\\n");
 
-    print("HOST: ");
-    print(server);
-    print(":");
-    print(port);
-    print("\\r\\n");
+    sendAscii("HOST: ");
+    sendAscii(server);
+    sendAscii(":");
 
-    print("Content-Length: ");
-    print(strlen(body));
-    print("\\r\\n");
+    char buff[11];
+    itoa(port, buff, 10);
+    sendAscii(buff);
+    sendAscii("\\r\\n");
+
+    sendAscii("Content-Length: ");
+    itoa(strlen(body), buff, 10);
+    sendAscii(buff);
+    sendAscii("\\r\\n");
 
     sendEscapedAscii(headers);
-    print("\\r\\n");
+    sendAscii("\\r\\n");
 
     sendEscapedAscii(body);
 
-    println("\")");
+    transmitSendBuffer();
   }
 
   // Wait till we hear that it was sent
