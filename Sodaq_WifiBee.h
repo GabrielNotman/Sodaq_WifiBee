@@ -105,8 +105,6 @@ public:
 
   // Stream implementations
   size_t write(uint8_t x);
-
-  size_t write(const uint8_t *buffer, size_t size);
   
   int available();
   
@@ -139,7 +137,9 @@ private:
 
   bool readTillPrompt(uint8_t* buffer, const size_t size, size_t& bytesStored,
       const char* prompt, const uint32_t timeMS);
-
+  
+  void sendAscii(const char* data);
+  
   void sendEscapedAscii(const char* data);
 
   void sendEscapedBinary(const uint8_t* data, const size_t length);
@@ -164,8 +164,6 @@ private:
   bool waitForIP(const uint32_t timeMS);
 
   bool parseHTTPResponse(uint16_t& httpCode);
-
-  void sendChunkedData(const char* data);
 
   inline void clearBuffer();
 
