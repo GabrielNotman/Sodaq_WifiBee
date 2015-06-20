@@ -280,22 +280,25 @@ bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
   result = openConnection(server, port, "net.TCP");
 
   if (result) {
-    print("wifiConn:send(\"");
+    createSendBuffer();
 
-    print("GET ");
-    print(location);
-    print(" HTTP/1.1\\r\\n");
+    sendAscii("GET ");
+    sendAscii(location);
+    sendAscii(" HTTP/1.1\\r\\n");
 
-    print("HOST: ");
-    print(server);
-    print(":");
-    print(port);
-    print("\\r\\n");
+    sendAscii("HOST: ");
+    sendAscii(server);
+    sendAscii(":");
+
+    char portBuff[6];
+    itoa(port, portBuff, 10);
+    sendAscii(portBuff);
+    sendAscii("\\r\\n");
 
     sendEscapedAscii(headers);
-    print("\\r\\n");
+    sendAscii("\\r\\n");
 
-    println("\")");
+    transmitSendBuffer();
   }
 
   // Wait till we hear that it was sent
