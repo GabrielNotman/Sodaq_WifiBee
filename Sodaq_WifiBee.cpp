@@ -30,7 +30,8 @@
 #define diagPrintLn(...)
 #endif
 
-// Lua command size limit
+// Lua command size limit 
+// Cannot be set to < 13
 #define LUA_COMMAND_MAX 255
 
 // Lua prompts
@@ -925,7 +926,7 @@ void Sodaq_WifiBee::sendEscapedAscii(const char* data)
 {
   size_t length = strlen(data);
   size_t overhead = 9; // sb=sb..""
-  size_t chunkSize = (LUA_COMMAND_MAX - overhead) / 2; //Worst case everything is escaped
+  size_t chunkSize = LUA_COMMAND_MAX - overhead - 1; //-1 for space if final character is escaped
 
   size_t index = 0;
   size_t count;
@@ -934,6 +935,8 @@ void Sodaq_WifiBee::sendEscapedAscii(const char* data)
     count = 0;
     print("sb=sb..\"");
     while ((count < chunkSize) && (index < length)) {
+      bool escaped = true;
+
       switch (data[index]) {
       case '\a':
         print("\\a");
@@ -973,10 +976,16 @@ void Sodaq_WifiBee::sendEscapedAscii(const char* data)
         break;
       default:
         print(data[index]);
+        escaped = false; 
         break;
       }
 
+      //Add +1 for normal +2 for escaped.
       count++;
+      if (escaped) {
+        count++;
+      }
+
       index++;
     }
     println("\"");
