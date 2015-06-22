@@ -168,7 +168,7 @@ void Sodaq_WifiBee::on()
 {
   diagPrintLn("\r\nPower ON");
   digitalWrite(_dtrPin, LOW);
-  skipForTime(WAKE_DELAY);
+  skipTillPrompt(LUA_PROMPT, WAKE_DELAY);
 }
 
 /*! 
