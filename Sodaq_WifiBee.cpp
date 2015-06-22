@@ -231,26 +231,24 @@ bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
     sendEscapedAscii(body);
 
     transmitSendBuffer();
-  }
 
-  // Wait till we hear that it was sent
-  if (result) {
+    // Wait till we hear that it was sent
     result = skipTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
-  }
 
-  // Wait till we get the data received prompt
-  if (result) {
-    if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
-      readServerResponse();
-      parseHTTPResponse(httpCode);
-    } else {
-      clearBuffer();
+    // Wait till we get the data received prompt
+    if (result) {
+      if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
+        readServerResponse();
+        parseHTTPResponse(httpCode);
+      }
+      else {
+        clearBuffer();
+      }
     }
+
+    // The connection might have closed automatically
+    closeConnection();
   }
-  
-  // The connection might have closed automatically
-  // or it failed to open
-  closeConnection();
 
   return result;
 }
@@ -304,26 +302,24 @@ bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
     sendAscii("\\r\\n");
 
     transmitSendBuffer();
-  }
 
-  // Wait till we hear that it was sent
-  if (result) {
+    // Wait till we hear that it was sent
     result = skipTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
-  }
-
-  // Wait till we get the data received prompt
-  if (result) {
-    if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
-      readServerResponse();
-      parseHTTPResponse(httpCode);
-    } else {
-      clearBuffer();
+ 
+    // Wait till we get the data received prompt
+    if (result) {
+      if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
+        readServerResponse();
+        parseHTTPResponse(httpCode);
+      }
+      else {
+        clearBuffer();
+      }
     }
-  }
 
-  // The connection might have closed automatically
-  // or it failed to open
-  closeConnection();
+    // The connection might have closed automatically
+    closeConnection();
+  }
 
   return result;
 }
@@ -384,27 +380,24 @@ bool Sodaq_WifiBee::HTTPPost(const char* server, const uint16_t port,
     sendEscapedAscii(body);
 
     transmitSendBuffer();
-  }
 
-  // Wait till we hear that it was sent
-  if (result) {
+    // Wait till we hear that it was sent
     result = skipTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
-  }
 
-  // Wait till we get the data received prompt
-  if (result) {
-    if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
-      readServerResponse();
-      parseHTTPResponse(httpCode);
+    // Wait till we get the data received prompt
+    if (result) {
+      if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
+        readServerResponse();
+        parseHTTPResponse(httpCode);
+      }
+      else {
+        clearBuffer();
+      }
     }
-    else {
-      clearBuffer();
-    }
-  }
 
-  // The connection might have closed automatically
-  // or it failed to open
-  closeConnection();
+    // The connection might have closed automatically
+    closeConnection();
+  }
 
   return result;
 }
