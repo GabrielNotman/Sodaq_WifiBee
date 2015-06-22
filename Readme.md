@@ -3,6 +3,10 @@ This is the Arduino library for the SODAQ WifiBee. \n
 It is designed to be used as a client for synchronous request response communication.
 It does not support or handle any unsolicited incoming data/requests.
 
+## Length Limitations
+__Host + Port(digits):__ Limited to a combined maximum of 234 characters. \n
+__SSID + Password:__ Limited to a combined maximum of 233 characters.
+
 ## Power Management
 It uses the hardware power switch (Bee DTR pin) to leave the device powered
 down when not in use.
