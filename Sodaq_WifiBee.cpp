@@ -280,51 +280,7 @@ bool Sodaq_WifiBee::HTTPAction(const String& server, const uint16_t port,
 bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
     const char* location, const char* headers, uint16_t& httpCode)
 {
-  bool result;
-
-  // Open the connection
-  result = openConnection(server, port, "net.TCP");
-
-  if (result) {
-    createSendBuffer();
-
-    sendAscii("GET ");
-    sendAscii(location);
-    sendAscii(" HTTP/1.1\\r\\n");
-
-    sendAscii("HOST: ");
-    sendAscii(server);
-    sendAscii(":");
-
-    char buff[6];
-    itoa(port, buff, 10);
-    sendAscii(buff);
-    sendAscii("\\r\\n");
-
-    sendEscapedAscii(headers);
-    sendAscii("\\r\\n");
-
-    transmitSendBuffer();
-
-    // Wait till we hear that it was sent
-    result = skipTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
- 
-    // Wait till we get the data received prompt
-    if (result) {
-      if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
-        readServerResponse();
-        parseHTTPResponse(httpCode);
-      }
-      else {
-        clearBuffer();
-      }
-    }
-
-    // The connection might have closed automatically
-    closeConnection();
-  }
-
-  return result;
+  return HTTPAction(server, port, "GET", location, headers, "", httpCode);
 }
 
 /*!
