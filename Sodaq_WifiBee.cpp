@@ -321,6 +321,35 @@ bool Sodaq_WifiBee::HTTPPost(const String& server, const uint16_t port,
     body.c_str(), httpCode);
 }
 
+/*!
+* This method constructs and sends a HTTP PUT request.
+* @param server The server/host to connect to (IP address or domain).
+* @param port The port to connect to.
+* @param location The resource location on the server/host.
+* @param headers Any additional headers, each must be followed by a CRLF.
+* HOST & Content-Length headers are added automatically.
+* @param body The body (can be blank) to send with the request. Must not start with a CRLF.
+* @param httpCode The HTTP response code is written to this parameter (if a response is received).
+* @return `true` if a connection is established and the data is sent, `false` otherwise.
+*/
+bool Sodaq_WifiBee::HTTPPut(const char* server, const uint16_t port,
+  const char* location, const char* headers, const char* body,
+  uint16_t& httpCode)
+{
+  return HTTPAction(server, port, "PUT", location, headers, body, httpCode);
+}
+
+/*!
+*\overload
+*/
+bool Sodaq_WifiBee::HTTPPut(const String& server, const uint16_t port,
+  const String& location, const String& headers, const String& body,
+  uint16_t& httpCode)
+{
+  return HTTPPut(server.c_str(), port, location.c_str(), headers.c_str(),
+    body.c_str(), httpCode);
+}
+
 // TCP methods
 /*! 
 * This method opens a TCP connection to a remote server.

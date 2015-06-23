@@ -70,6 +70,12 @@ public:
   bool HTTPPost(const String& server, const uint16_t port, const String& location,
     const String& headers, const String& body, uint16_t& httpCode);
 
+  bool HTTPPut(const char* server, const uint16_t port, const char* location,
+    const char* headers, const char* body, uint16_t& httpCode);
+
+  bool HTTPPut(const String& server, const uint16_t port, const String& location,
+    const String& headers, const String& body, uint16_t& httpCode);
+
   // TCP methods
   bool openTCP(const char* server, uint16_t port);
 
