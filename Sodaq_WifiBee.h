@@ -50,22 +50,22 @@ public:
   // HTTP methods
   // These use HTTP/1.1 and add headers for HOST (all)
   // and Content-Length (if body length > 0) (never in HTTPGet())
-  bool HTTPGet(const char* server, const uint16_t port, const char* location,
+  bool HTTPGet(const char* server, const uint16_t port, const char* URI,
       const char* headers, uint16_t& httpCode);
 
-  bool HTTPGet(const String& server, const uint16_t port, const String& location,
+  bool HTTPGet(const String& server, const uint16_t port, const String& URI,
     const String& headers, uint16_t& httpCode);
 
-  bool HTTPPost(const char* server, const uint16_t port, const char* location,
+  bool HTTPPost(const char* server, const uint16_t port, const char* URI,
       const char* headers, const char* body, uint16_t& httpCode);
 
-  bool HTTPPost(const String& server, const uint16_t port, const String& location,
+  bool HTTPPost(const String& server, const uint16_t port, const String& URI,
     const String& headers, const String& body, uint16_t& httpCode);
 
-  bool HTTPPut(const char* server, const uint16_t port, const char* location,
+  bool HTTPPut(const char* server, const uint16_t port, const char* URI,
     const char* headers, const char* body, uint16_t& httpCode);
 
-  bool HTTPPut(const String& server, const uint16_t port, const String& location,
+  bool HTTPPut(const String& server, const uint16_t port, const String& URI,
     const String& headers, const String& body, uint16_t& httpCode);
 
   // TCP methods

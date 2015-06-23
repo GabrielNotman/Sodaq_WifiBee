@@ -186,32 +186,32 @@ void Sodaq_WifiBee::off()
 * This method constructs and sends a HTTP GET request.
 * @param server The server/host to connect to (IP address or domain).
 * @param port The port to connect to.
-* @param location The resource location on the server/host.
+* @param URI The resource location on the server/host.
 * @param headers Any additional headers, each must be followed by a CRLF.
 * HOST header is added automatically.
 * @param httpCode The HTTP response code is written to this parameter (if a response is received).
 * @return `true` if a connection is established and the data is sent, `false` otherwise.
 */
 bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
-    const char* location, const char* headers, uint16_t& httpCode)
+    const char* URI, const char* headers, uint16_t& httpCode)
 {
-  return HTTPAction(server, port, "GET", location, headers, "", httpCode);
+  return HTTPAction(server, port, "GET", URI, headers, "", httpCode);
 }
 
 /*!
 *\overload
 */
 bool Sodaq_WifiBee::HTTPGet(const String& server, const uint16_t port,
-  const String& location, const String& headers, uint16_t& httpCode)
+  const String& URI, const String& headers, uint16_t& httpCode)
 {
-  return HTTPGet(server.c_str(), port, location.c_str(), headers.c_str(), httpCode);
+  return HTTPGet(server.c_str(), port, URI.c_str(), headers.c_str(), httpCode);
 }
 
 /*!
 * This method constructs and sends a HTTP POST request.
 * @param server The server/host to connect to (IP address or domain).
 * @param port The port to connect to.
-* @param location The resource location on the server/host.
+* @param URI The resource location on the server/host.
 * @param headers Any additional headers, each must be followed by a CRLF. 
 * HOST & Content-Length headers are added automatically.
 * @param body The body (can be blank) to send with the request. Must not start with a CRLF.
@@ -219,20 +219,20 @@ bool Sodaq_WifiBee::HTTPGet(const String& server, const uint16_t port,
 * @return `true` if a connection is established and the data is sent, `false` otherwise.
 */
 bool Sodaq_WifiBee::HTTPPost(const char* server, const uint16_t port,
-    const char* location, const char* headers, const char* body,
+    const char* URI, const char* headers, const char* body,
     uint16_t& httpCode)
 {
-  return HTTPAction(server, port, "POST", location, headers, body, httpCode);
+  return HTTPAction(server, port, "POST", URI, headers, body, httpCode);
 }
 
 /*!
 *\overload
 */
 bool Sodaq_WifiBee::HTTPPost(const String& server, const uint16_t port,
-  const String& location, const String& headers, const String& body,
+  const String& URI, const String& headers, const String& body,
   uint16_t& httpCode)
 {
-  return HTTPPost(server.c_str(), port, location.c_str(), headers.c_str(),
+  return HTTPPost(server.c_str(), port, URI.c_str(), headers.c_str(),
     body.c_str(), httpCode);
 }
 
@@ -240,7 +240,7 @@ bool Sodaq_WifiBee::HTTPPost(const String& server, const uint16_t port,
 * This method constructs and sends a HTTP PUT request.
 * @param server The server/host to connect to (IP address or domain).
 * @param port The port to connect to.
-* @param location The resource location on the server/host.
+* @param URI The resource location on the server/host.
 * @param headers Any additional headers, each must be followed by a CRLF.
 * HOST & Content-Length headers are added automatically.
 * @param body The body (can be blank) to send with the request. Must not start with a CRLF.
@@ -248,20 +248,20 @@ bool Sodaq_WifiBee::HTTPPost(const String& server, const uint16_t port,
 * @return `true` if a connection is established and the data is sent, `false` otherwise.
 */
 bool Sodaq_WifiBee::HTTPPut(const char* server, const uint16_t port,
-  const char* location, const char* headers, const char* body,
+  const char* URI, const char* headers, const char* body,
   uint16_t& httpCode)
 {
-  return HTTPAction(server, port, "PUT", location, headers, body, httpCode);
+  return HTTPAction(server, port, "PUT", URI, headers, body, httpCode);
 }
 
 /*!
 *\overload
 */
 bool Sodaq_WifiBee::HTTPPut(const String& server, const uint16_t port,
-  const String& location, const String& headers, const String& body,
+  const String& URI, const String& headers, const String& body,
   uint16_t& httpCode)
 {
-  return HTTPPut(server.c_str(), port, location.c_str(), headers.c_str(),
+  return HTTPPut(server.c_str(), port, URI.c_str(), headers.c_str(),
     body.c_str(), httpCode);
 }
 
