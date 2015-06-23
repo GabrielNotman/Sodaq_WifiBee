@@ -32,7 +32,7 @@ void setup() {
   Serial.println("----------------------------------");
   
   uint16_t code = 0;
-  if (wifiBee.HTTPAction("httpbin.org", 80, "PUT", "/put", TEST_HEADERS, TEST_BODY, code)) {
+  if (wifiBee.HTTPPut("httpbin.org", 80, "/put", TEST_HEADERS, TEST_BODY, code)) {
     Serial.println("------------------");
     Serial.println("Response Code: " + String(code));
     Serial.println("------------------");

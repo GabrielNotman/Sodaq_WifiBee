@@ -50,14 +50,6 @@ public:
   // HTTP methods
   // These use HTTP/1.1 and add headers for HOST (all)
   // and Content-Length (if body length > 0) (never in HTTPGet())
-  bool HTTPAction(const char* server, const uint16_t port, const char* method,
-      const char* location, const char* headers, const char* body,
-      uint16_t& httpCode);
-
-  bool HTTPAction(const String& server, const uint16_t port, const String& method,
-    const String& location, const String& headers, const String& body,
-    uint16_t& httpCode);
-
   bool HTTPGet(const char* server, const uint16_t port, const char* location,
       const char* headers, uint16_t& httpCode);
 
@@ -168,6 +160,10 @@ private:
   bool getStatus(uint8_t& status);
 
   bool waitForIP(const uint32_t timeMS);
+
+  bool HTTPAction(const char* server, const uint16_t port, const char* method,
+    const char* location, const char* headers, const char* body,
+    uint16_t& httpCode);
 
   bool parseHTTPResponse(uint16_t& httpCode);
 

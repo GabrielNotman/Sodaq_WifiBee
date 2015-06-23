@@ -16,9 +16,9 @@ It supports general __HTTP__ requests as well as __TCP__ and __UDP__ connections
 ## HTTP Methods
 
 ~~~~~~~~~~~~~~~{.c}
-  HTTPAction()
   HTTPGet()
   HTTPPost()
+  HTTPPut()
 ~~~~~~~~~~~~~~~
 
 ## TCP Methods

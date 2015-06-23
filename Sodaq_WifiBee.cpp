@@ -182,91 +182,6 @@ void Sodaq_WifiBee::off()
 }
 
 // HTTP methods
-/*! 
-* This method constructs and sends a generic HTTP request.
-* @param server The server/host to connect to (IP address or domain).
-* @param port The port to connect to.
-* @param The HTTP method to use. e.g. "GET", "POST" etc.
-* @param location The resource location on the server/host.
-* @param headers Any additional headers, each must be followed by a CRLF.
-* HOST & Content-Length headers are added automatically.
-* @param body The body (can be blank) to send with the request. Must not start with a CRLF.
-* @param httpCode The HTTP response code is written to this parameter (if a response is received).
-* @return `true` if a connection is established and the data is sent, `false` otherwise.
-*/
-bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
-    const char* method, const char* location, const char* headers,
-    const char* body, uint16_t& httpCode)
-{
-  bool result;
-
-  // Open the connection
-  result = openConnection(server, port, "net.TCP");
-
-  if (result) {
-    createSendBuffer();
-
-    sendAscii(method);
-    sendAscii(" ");
-    sendAscii(location);
-    sendAscii(" HTTP/1.1\\r\\n");
-
-    sendAscii("HOST: ");
-    sendAscii(server);
-    sendAscii(":");
-
-    char buff[11];
-    itoa(port, buff, 10);
-    sendAscii(buff);
-    sendAscii("\\r\\n");
-
-    size_t bodyLen = strlen(body);
-    if (bodyLen > 0) {
-      sendAscii("Content-Length: ");
-      itoa(bodyLen, buff, 10);
-      sendAscii(buff);
-      sendAscii("\\r\\n");
-    }
-
-    sendEscapedAscii(headers);
-    sendAscii("\\r\\n");
-
-    sendEscapedAscii(body);
-
-    transmitSendBuffer();
-
-    // Wait till we hear that it was sent
-    result = skipTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
-
-    // Wait till we get the data received prompt
-    if (result) {
-      if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
-        readServerResponse();
-        parseHTTPResponse(httpCode);
-      }
-      else {
-        clearBuffer();
-      }
-    }
-
-    // The connection might have closed automatically
-    closeConnection();
-  }
-
-  return result;
-}
-
-/*!
-*\overload
-*/
-bool Sodaq_WifiBee::HTTPAction(const String& server, const uint16_t port,
-  const String& method, const String& location, const String& headers,
-  const String& body, uint16_t& httpCode)
-{
-  return HTTPAction(server.c_str(), port, method.c_str(), location.c_str(),
-    headers.c_str(), body.c_str(), httpCode);
-}
-
 /*!
 * This method constructs and sends a HTTP GET request.
 * @param server The server/host to connect to (IP address or domain).
@@ -1213,6 +1128,80 @@ bool Sodaq_WifiBee::waitForIP(const uint32_t timeMS)
     diagPrintLn("Success: IP received");
     result = true;
     break;
+  }
+
+  return result;
+}
+
+/*!
+* This method constructs and sends a generic HTTP request.
+* @param server The server/host to connect to (IP address or domain).
+* @param port The port to connect to.
+* @param The HTTP method to use. e.g. "GET", "POST" etc.
+* @param location The resource location on the server/host.
+* @param headers Any additional headers, each must be followed by a CRLF.
+* HOST & Content-Length headers are added automatically.
+* @param body The body (can be blank) to send with the request. Must not start with a CRLF.
+* @param httpCode The HTTP response code is written to this parameter (if a response is received).
+* @return `true` if a connection is established and the data is sent, `false` otherwise.
+*/
+bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
+  const char* method, const char* location, const char* headers,
+  const char* body, uint16_t& httpCode)
+{
+  bool result;
+
+  // Open the connection
+  result = openConnection(server, port, "net.TCP");
+
+  if (result) {
+    createSendBuffer();
+
+    sendAscii(method);
+    sendAscii(" ");
+    sendAscii(location);
+    sendAscii(" HTTP/1.1\\r\\n");
+
+    sendAscii("HOST: ");
+    sendAscii(server);
+    sendAscii(":");
+
+    char buff[11];
+    itoa(port, buff, 10);
+    sendAscii(buff);
+    sendAscii("\\r\\n");
+
+    size_t bodyLen = strlen(body);
+    if (bodyLen > 0) {
+      sendAscii("Content-Length: ");
+      itoa(bodyLen, buff, 10);
+      sendAscii(buff);
+      sendAscii("\\r\\n");
+    }
+
+    sendEscapedAscii(headers);
+    sendAscii("\\r\\n");
+
+    sendEscapedAscii(body);
+
+    transmitSendBuffer();
+
+    // Wait till we hear that it was sent
+    result = skipTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
+
+    // Wait till we get the data received prompt
+    if (result) {
+      if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
+        readServerResponse();
+        parseHTTPResponse(httpCode);
+      }
+      else {
+        clearBuffer();
+      }
+    }
+
+    // The connection might have closed automatically
+    closeConnection();
   }
 
   return result;
