@@ -307,58 +307,7 @@ bool Sodaq_WifiBee::HTTPPost(const char* server, const uint16_t port,
     const char* location, const char* headers, const char* body,
     uint16_t& httpCode)
 {
-  bool result;
-
-  // Open the connection
-  result = openConnection(server, port, "net.TCP");
-
-  if (result) {
-    createSendBuffer();
-
-    sendAscii("POST ");
-    sendAscii(location);
-    sendAscii(" HTTP/1.1\\r\\n");
-
-    sendAscii("HOST: ");
-    sendAscii(server);
-    sendAscii(":");
-
-    char buff[11];
-    itoa(port, buff, 10);
-    sendAscii(buff);
-    sendAscii("\\r\\n");
-
-    sendAscii("Content-Length: ");
-    itoa(strlen(body), buff, 10);
-    sendAscii(buff);
-    sendAscii("\\r\\n");
-
-    sendEscapedAscii(headers);
-    sendAscii("\\r\\n");
-
-    sendEscapedAscii(body);
-
-    transmitSendBuffer();
-
-    // Wait till we hear that it was sent
-    result = skipTillPrompt(SENT_PROMPT, RESPONSE_TIMEOUT);
-
-    // Wait till we get the data received prompt
-    if (result) {
-      if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
-        readServerResponse();
-        parseHTTPResponse(httpCode);
-      }
-      else {
-        clearBuffer();
-      }
-    }
-
-    // The connection might have closed automatically
-    closeConnection();
-  }
-
-  return result;
+  return HTTPAction(server, port, "POST", location, headers, body, httpCode);
 }
 
 /*!
