@@ -49,7 +49,7 @@ public:
 
   // HTTP methods
   // These use HTTP/1.1 and add headers for HOST (all)
-  // and Content-Length (except HTTPGet())
+  // and Content-Length (if body length > 0) (never in HTTPGet())
   bool HTTPAction(const char* server, const uint16_t port, const char* method,
       const char* location, const char* headers, const char* body,
       uint16_t& httpCode);
