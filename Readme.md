@@ -1,6 +1,8 @@
 # SODAQ WifiBee
 This is the Arduino library for the SODAQ WifiBee.
+
 It is designed to be used as a client for synchronous request response communication.
+
 It does not support or handle any unsolicited incoming data/requests.
 
 ## Length Limitations
