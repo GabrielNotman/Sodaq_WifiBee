@@ -46,12 +46,7 @@
 #define EOF_PROMPT "|EOF|"
 
 // Lua connection callback scripts
-#define CONNECT_CALLBACK "function(s) print(\"|C|\") end" // Max length 228
-#define RECONNECT_CALLBACK "function(s) print(\"|RC|\") end" // Max length 226
-#define DISCONNECT_CALLBACK "function(s) print(\"|DC|\") end" // Max length 225
-#define SENT_CALLBACK "function(s) print(\"|DS|\") end" // Max length 234
 #define RECEIVED_CALLBACK "function(s, d) lastData=d print(\"|DR|\") end" // Max length 231
-
 #define STATUS_CALLBACK "print(\"|\" .. \"STS|\" .. wifi.sta.status() .. \"|\")" // Max length 255
 #define READ_BACK "uart.write(0, \"|\" .. \"SOF|\" .. lastData .. \"|EOF|\")" // Max length 255
 
@@ -718,6 +713,8 @@ bool Sodaq_WifiBee::readTillPrompt(uint8_t* buffer, const size_t size,
 
 /*!
 * This method uploads data to the send buffer.
+* The send buffer is stored on the NodeMCU and is transmitted
+* once the data to be sent has been uploaded to it.
 * It sends it in chunks so to comply with the LUA command limits.
 */
 void Sodaq_WifiBee::sendAscii(const char* data)
@@ -764,6 +761,8 @@ void Sodaq_WifiBee::sendAscii(const char* data)
 
 /*!
 * This method uploades escaped ASCII data to the send buffer.
+* The send buffer is stored on the NodeMCU and is transmitted
+* once the data to be sent has been uploaded to it.
 * It only escapes specific LUA characters.
 * @param data The buffer containing the ASCII data to send.
 */
@@ -840,6 +839,8 @@ void Sodaq_WifiBee::sendEscapedAscii(const char* data)
 
 /*!
 * This method uploades escaped binary data to the send buffer.
+* The send buffer is stored on the NodeMCU and is transmitted
+* once the data to be sent has been uploaded to it.
 * It numerically escapes every byte.
 * @param data The buffer containing the binary data to send.
 * @param length The size of `data`.
@@ -892,25 +893,10 @@ bool Sodaq_WifiBee::openConnection(const char* server, const uint16_t port,
     skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
 
     //Setup the callbacks
-    print("wifiConn:on(\"connection\", ");
-    print(CONNECT_CALLBACK);
-    println(")");
-    skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
-
-    print("wifiConn:on(\"reconnection\", ");
-    print(RECONNECT_CALLBACK);
-    println(")");
-    skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
-
-    print("wifiConn:on(\"disconnection\", ");
-    print(DISCONNECT_CALLBACK);
-    println(")");
-    skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
-
-    print("wifiConn:on(\"sent\", ");
-    print(SENT_CALLBACK);
-    println(")");
-    skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
+    setSimpleCallBack("connection", CONNECT_PROMPT);
+    setSimpleCallBack("reconnection", RECONNECT_PROMPT);
+    setSimpleCallBack("disconnection", DISCONNECT_PROMPT);
+    setSimpleCallBack("sent", SENT_PROMPT);
 
     print("wifiConn:on(\"receive\", ");
     print(RECEIVED_CALLBACK);
@@ -1231,6 +1217,22 @@ bool Sodaq_WifiBee::parseHTTPResponse(uint16_t& httpCode)
   return result;
 }
 
+/*!
+* This inline method sets up simple callbacks.
+* Callbacks which simply print a tag.
+* @param eventName The event or callback name.
+* @param tag The tag to print when the event is triggered.
+*/
+inline void Sodaq_WifiBee::setSimpleCallBack(const char* eventName, const char* tag)
+{
+  print("wifiConn:on(\"");
+  print(eventName);
+  print("\", function(s) print(\"");
+  print(tag);
+  println("\") end)");
+  skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
+}
+
 /*! 
 * This inline method clears the internal buffer.
 */
@@ -1241,6 +1243,7 @@ inline void Sodaq_WifiBee::clearBuffer()
 
 /*! 
 * This inline method is used throughout the class to add a delay.
+* @param ms The delay in milliseconds.
 */
 inline void Sodaq_WifiBee::_delay(uint32_t ms)
 {
