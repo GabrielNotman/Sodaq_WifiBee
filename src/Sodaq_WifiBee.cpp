@@ -397,7 +397,7 @@ bool Sodaq_WifiBee::readResponseAscii(char* buffer, const size_t size, size_t& b
     return false;
   }
 
-  bytesRead = min((size - 1), _bufferUsed);
+  bytesRead = ((size - 1) < _bufferUsed) ? (size - 1) : _bufferUsed;
 
   memcpy(buffer, _buffer, bytesRead);
   buffer[bytesRead] = '\0';
@@ -420,7 +420,7 @@ bool Sodaq_WifiBee::readResponseBinary(uint8_t* buffer, const size_t size, size_
     return false;
   }
 
-  bytesRead = min(size, _bufferUsed);
+  bytesRead = (size < _bufferUsed) ? size : _bufferUsed;
 
   memcpy(buffer, _buffer, bytesRead);
 
@@ -453,7 +453,7 @@ bool Sodaq_WifiBee::readHTTPResponse(char* buffer, const size_t size,
   char* startPos = strstr((char*)_buffer, "\r\n\r\n") + 4;
 
   size_t startIndex = startPos - (char*)_buffer;
-  bytesRead = min((size - 1), (_bufferUsed - startIndex));
+  bytesRead = ((size - 1) < (_bufferUsed - startIndex)) ? (size - 1) : (_bufferUsed - startIndex);
 
   memcpy(buffer, startPos, bytesRead);
   buffer[bytesRead] = '\0';
@@ -695,7 +695,7 @@ bool Sodaq_WifiBee::readTillPrompt(uint8_t* buffer, const size_t size,
 
         if (promptIndex == promptLen) {
           result = true;
-          bufferIndex = min(size - 1, streamCount - promptLen);
+          bufferIndex = ((size - 1) < (streamCount - promptLen)) ? (size - 1) : (streamCount - promptLen);
           break;
         }
       } else {
