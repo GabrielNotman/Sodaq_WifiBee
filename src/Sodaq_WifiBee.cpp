@@ -78,7 +78,10 @@ Sodaq_WifiBee::Sodaq_WifiBee()
   _diagStream = NULL;
 
   // Initialize to some unlikely value
-  _dtrPin = 0xFF;               
+  _dtrPin = 0xFF;
+  _pwrPin = 0xFF;
+
+  _usePwrSwitch = false;
 }
 
 /*! 
@@ -155,6 +158,19 @@ const char* Sodaq_WifiBee::getDeviceType()
   return "WifiBee";
 }
 
+/*!
+* This method sets the WifiBee to use power switching instead of DTR switching.
+* @param powerPin The power switching pin.
+*/
+void Sodaq_WifiBee::usePowerSwitching(const uint8_t powerPin)
+{
+  _pwrPin = powerPin;
+  _usePwrSwitch = true;
+
+  pinMode(_pwrPin, OUTPUT);
+}
+
+
 /*! 
 * This method switches on the WifiBee. 
 * It is called automatically, as required, by most methods.
@@ -162,7 +178,15 @@ const char* Sodaq_WifiBee::getDeviceType()
 void Sodaq_WifiBee::on()
 {
   diagPrintLn("\r\nPower ON");
+
+  // If we are switching using the power pin, we set _pwrPin HIGH (on)
+  if (_usePwrSwitch) {
+    digitalWrite(_pwrPin, HIGH);
+  }
+
+  // We always set _dtrPin LOW (on)
   digitalWrite(_dtrPin, LOW);
+  
   skipTillPrompt(LUA_PROMPT, WAKE_DELAY);
 }
 
@@ -173,7 +197,15 @@ void Sodaq_WifiBee::on()
 void Sodaq_WifiBee::off()
 {
   diagPrintLn("\r\nPower OFF");
-  digitalWrite(_dtrPin, HIGH);
+
+  // If we are switching using the power pin, we set _pwrPin LOW (off)
+  // otherwise if we are using the DTR to switch, we set _dtrPin HIGH (off)
+  if (_usePwrSwitch) {
+    digitalWrite(_pwrPin, LOW);
+  }
+  else {
+    digitalWrite(_dtrPin, HIGH);
+  }
 }
 
 // HTTP methods

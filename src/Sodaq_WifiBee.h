@@ -43,6 +43,8 @@ public:
 
   const char* getDeviceType();
 
+  void usePowerSwitching(const uint8_t powerPin);
+
   void on();
 
   void off();
@@ -119,7 +121,10 @@ private:
 
   Stream* _dataStream;  /*!< A reference to the stream object used for communicating with the WifiBee. */
   Stream* _diagStream; /*!< A reference to an optional stream object used for debugging. */
+  
   uint8_t _dtrPin;  /*!< The Bee socket's DTR pin. */
+  uint8_t _pwrPin; /*!< Optional Bee socket power switching pin.*/
+  bool _usePwrSwitch; /*!< Indicates whether to switch with the Power or DTR pin.*/
 
   size_t _bufferSize;  /*!< The allocated size of `_buffer`. */
   size_t _bufferUsed;  /*!< The current amount of `_buffer` which is in use. */
