@@ -179,15 +179,21 @@ void Sodaq_WifiBee::on()
 {
   diagPrintLn("\r\nPower ON");
 
-  // If we are switching using the power pin, we set _pwrPin HIGH (on)
-  if (_usePwrSwitch) {
-    digitalWrite(_pwrPin, HIGH);
+  // If a custom on() method has been supplied
+  if (_onMethod != NULL) {
+    _onMethod();
   }
+  else {
+    // If we are switching using the power pin, we set _pwrPin HIGH (on)
+    if (_usePwrSwitch) {
+      digitalWrite(_pwrPin, HIGH);
+    }
 
-  // We always set _dtrPin LOW (on)
-  digitalWrite(_dtrPin, LOW);
-  
-  skipTillPrompt(LUA_PROMPT, WAKE_DELAY);
+    // We always set _dtrPin LOW (on)
+    digitalWrite(_dtrPin, LOW);
+
+    skipTillPrompt(LUA_PROMPT, WAKE_DELAY);
+  }
 }
 
 /*! 
@@ -198,13 +204,19 @@ void Sodaq_WifiBee::off()
 {
   diagPrintLn("\r\nPower OFF");
 
-  // If we are switching using the power pin, we set _pwrPin LOW (off)
-  // otherwise if we are using the DTR to switch, we set _dtrPin HIGH (off)
-  if (_usePwrSwitch) {
-    digitalWrite(_pwrPin, LOW);
+  // If a custom off() method has been supplied
+  if (_offMethod != NULL) {
+    _offMethod();
   }
   else {
-    digitalWrite(_dtrPin, HIGH);
+    // If we are switching using the power pin, we set _pwrPin LOW (off)
+    // otherwise if we are using the DTR to switch, we set _dtrPin HIGH (off)
+    if (_usePwrSwitch) {
+      digitalWrite(_pwrPin, LOW);
+    }
+    else {
+      digitalWrite(_dtrPin, HIGH);
+    }
   }
 }
 

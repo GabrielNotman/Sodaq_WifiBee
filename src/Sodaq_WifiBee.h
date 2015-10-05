@@ -23,8 +23,9 @@
 
 #include <Arduino.h>
 #include <Stream.h>
+#include "Switchable_Device.h"
 
-class Sodaq_WifiBee : public Stream
+class Sodaq_WifiBee : public Stream, public SwitchableDevice
 {
 public:
   Sodaq_WifiBee();
