@@ -43,7 +43,7 @@
 #define RECEIVED_PROMPT "|DR|"
 #define STATUS_PROMPT "|STS|"
 #define SOF_PROMPT "|SOF|"
-#define EOF_PROMPT "|EOF|"
+#define EOF_PROMPT "|EOF|" // Cannot start with a HEX character (0..9, A..F)
 
 // Lua connection callback scripts
 #define RECEIVED_CALLBACK "function(s, d) lastData=d print(\"|DR|\") end" // Max length 231
@@ -759,6 +759,81 @@ bool Sodaq_WifiBee::readTillPrompt(uint8_t* buffer, const size_t size,
 }
 
 /*!
+* This method reads and empties the input buffer of `_dataStream`.
+* It continues until it finds the specified prompt or until
+* the specified amount of time has elapsed.
+* The source data is converted from HEX and copied to the
+* buffer supplied. 
+* The first letter of the prompt cannot be a valid Hex char.
+* It attempts to output the data it reads to `_diagStream`.
+* @param buffer The buffer to copy the data into.
+* @param size The size of `buffer`.
+* @param bytesStored The number of bytes copied is written to this parameter.
+* @param prompt The prompt to read until.
+* @param timeMS The time limit in milliseconds.
+* @return `true` if it found the specified prompt within the time
+* limit, otherwise `false`.
+*/
+bool Sodaq_WifiBee::readHexTillPrompt(uint8_t* buffer, const size_t size,
+  size_t& bytesStored, const char* prompt, const uint32_t timeMS)
+{
+  if (!_dataStream) {
+    return false;
+  }
+
+  bool result = false;
+
+  uint32_t maxTS = millis() + timeMS;
+  size_t promptIndex = 0;
+  size_t promptLen = strlen(prompt);
+
+  size_t bufferIndex = 0;
+  size_t streamCount = 0;
+  bool even = false;
+
+
+  while (millis() < maxTS) {
+    if (available()) {
+      char c = read();
+      diagPrint(c);
+
+      streamCount++;
+
+      if (bufferIndex < size) {
+        buffer[bufferIndex] = c;
+        bufferIndex++;
+      }
+
+      if (c == prompt[promptIndex]) {
+        promptIndex++;
+
+        if (promptIndex == promptLen) {
+          result = true;
+          bufferIndex = ((size - 1) < ((streamCount - promptLen) / 2)) ? (size - 1) : (streamCount - promptLen) / 2;
+          break;
+        }
+      }
+      else {
+        promptIndex = 0;
+
+        if (even) {
+          _buffer[bufferIndex - 2] = HEX2BYTE(_buffer[bufferIndex - 2], _buffer[bufferIndex - 1]);
+          bufferIndex--;
+        }
+      }
+      even = !even;
+    }
+    else {
+      _delay(10);
+    }
+  }
+
+  bytesStored = bufferIndex;
+
+  return result;
+}
+
+/*!
 * This method uploads data to the send buffer.
 * The send buffer is stored on the NodeMCU and is transmitted
 * once the data to be sent has been uploaded to it.
@@ -1045,15 +1120,8 @@ bool Sodaq_WifiBee::readServerResponse()
   result = skipTillPrompt(SOF_PROMPT, RESPONSE_TIMEOUT);
   
   if (result) {
-    result = readTillPrompt(_buffer, _bufferSize, _bufferUsed, EOF_PROMPT,
+    result = readHexTillPrompt(_buffer, _bufferSize, _bufferUsed, EOF_PROMPT,
       READBACK_TIMEOUT);
-
-    size_t dataSize = _bufferUsed / 2;
-    for (size_t i = 0; i < dataSize; i++) {
-      _buffer[i] = HEX2BYTE(_buffer[i * 2], _buffer[i * 2 + 1]);
-    }
-    _bufferUsed = dataSize;
-    
   }
 
   return result;

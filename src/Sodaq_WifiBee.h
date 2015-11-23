@@ -141,6 +141,9 @@ private:
 
   bool readTillPrompt(uint8_t* buffer, const size_t size, size_t& bytesStored,
       const char* prompt, const uint32_t timeMS);
+
+  bool readHexTillPrompt(uint8_t* buffer, const size_t size,
+    size_t& bytesStored, const char* prompt, const uint32_t timeMS);
   
   void sendAscii(const char* data);
   
