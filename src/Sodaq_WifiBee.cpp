@@ -48,7 +48,7 @@
 // Lua connection callback scripts
 #define RECEIVED_CALLBACK "function(s, d) lastData=d print(\"|DR|\") end" // Max length 231
 #define STATUS_CALLBACK "print(\"|\" .. \"STS|\" .. wifi.sta.status() .. \"|\")" // Max length 255
-#define READ_BACK "uart.write(0, \"|\" .. \"SOF|\" .. lastData .. \"|EOF|\")" // Max length 255
+#define READ_BACK "uart.write(0, \"|\" .. \"SOF|\") for i=1, lastData:len(), 1 do uart.write(0, string.format(\"%02X\", lastData:byte(i))) end uart.write(0, \"|EOF|\")" // Max length 255
 
 // Timeout constants
 #define RESPONSE_TIMEOUT 2000
@@ -59,6 +59,9 @@
 #define READBACK_TIMEOUT 2500
 #define WAKE_DELAY 2000
 #define STATUS_DELAY 1000
+
+#define NIBBLE2BYTE(X) ((X >= 'A') ? X - 'A' + 10: X - '0')
+#define HEX2BYTE(H, L) ((NIBBLE2BYTE(H) << 4) + NIBBLE2BYTE(L))
 
 /*! 
 * Initialises member variables to default values,
@@ -1044,6 +1047,13 @@ bool Sodaq_WifiBee::readServerResponse()
   if (result) {
     result = readTillPrompt(_buffer, _bufferSize, _bufferUsed, EOF_PROMPT,
       READBACK_TIMEOUT);
+
+    size_t dataSize = _bufferUsed / 2;
+    for (size_t i = 0; i < dataSize; i++) {
+      _buffer[i] = HEX2BYTE(_buffer[i * 2], _buffer[i * 2 + 1]);
+    }
+    _bufferUsed = dataSize;
+    
   }
 
   return result;
