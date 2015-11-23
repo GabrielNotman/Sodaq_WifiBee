@@ -176,6 +176,8 @@ private:
 
   bool parseHTTPResponse(uint16_t& httpCode);
 
+  bool timedOut32(uint32_t startTS, uint32_t ms);
+
   inline void setSimpleCallBack(const char* eventName, const char* tag);
 
   inline void clearBuffer();

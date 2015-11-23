@@ -63,6 +63,8 @@
 #define NIBBLE2BYTE(X) ((X >= 'A') ? X - 'A' + 10: X - '0')
 #define HEX2BYTE(H, L) ((NIBBLE2BYTE(H) << 4) + NIBBLE2BYTE(L))
 
+#define UINT_32_MAX 0xFFFFFFFF
+
 /*! 
 * Initialises member variables to default values,
 * including any pointers to NULL.
@@ -602,9 +604,9 @@ int Sodaq_WifiBee::skipForTime(const uint32_t timeMS)
   }
 
   int count = 0;
-  uint32_t maxTS = millis() + timeMS;
+  uint32_t startTS = millis();
 
-  while (millis() < maxTS) {
+  while (!timedOut32(startTS, timeMS)) {
     if (available()) {
       char c = read();
       diagPrint(c);
@@ -635,11 +637,12 @@ bool Sodaq_WifiBee::skipTillPrompt(const char* prompt, const uint32_t timeMS)
 
   bool result = false;
 
-  uint32_t maxTS = millis() + timeMS;
+  uint32_t startTS = millis();
+
   size_t index = 0;
   size_t promptLen = strlen(prompt);
 
-  while (millis() < maxTS) {
+  while (!timedOut32(startTS, timeMS)) {
     if (available()) {
       char c = read();
       diagPrint(c);
@@ -679,8 +682,8 @@ bool Sodaq_WifiBee::readChar(char& data, const uint32_t timeMS)
 
   bool result = false;
 
-  uint32_t maxTS = millis() + timeMS;
-  while ((millis() < maxTS) && (!result)) {
+  uint32_t startTS = millis();
+  while ((!timedOut32(startTS, timeMS)) && (!result)) {
     if (available()) {
       data = read();
       diagPrint(data);
@@ -717,15 +720,14 @@ bool Sodaq_WifiBee::readTillPrompt(uint8_t* buffer, const size_t size,
 
   bool result = false;
 
-  uint32_t maxTS = millis() + timeMS;
+  uint32_t startTS = millis(); 
   size_t promptIndex = 0;
   size_t promptLen = strlen(prompt);
 
   size_t bufferIndex = 0;
   size_t streamCount = 0;
   
-
-  while (millis() < maxTS) {
+  while (!timedOut32(startTS, timeMS)) {
     if (available()) {
       char c = read();
       diagPrint(c);
@@ -783,7 +785,7 @@ bool Sodaq_WifiBee::readHexTillPrompt(uint8_t* buffer, const size_t size,
 
   bool result = false;
 
-  uint32_t maxTS = millis() + timeMS;
+  uint32_t startTS = millis();
   size_t promptIndex = 0;
   size_t promptLen = strlen(prompt);
 
@@ -791,8 +793,7 @@ bool Sodaq_WifiBee::readHexTillPrompt(uint8_t* buffer, const size_t size,
   size_t streamCount = 0;
   bool even = false;
 
-
-  while (millis() < maxTS) {
+  while (!timedOut32(startTS, timeMS)) {
     if (available()) {
       char c = read();
       diagPrint(c);
@@ -1202,9 +1203,9 @@ bool Sodaq_WifiBee::waitForIP(const uint32_t timeMS)
   bool result = false;
 
   uint8_t status = 1;
-  uint32_t maxTS = millis() + timeMS;
+  uint32_t startTS = millis();
 
-  while ((millis() < maxTS) && (status == 1)) {
+  while ((!timedOut32(startTS, timeMS)) && (status == 1)) {
     skipForTime(STATUS_DELAY);
     getStatus(status);
   }
@@ -1337,6 +1338,22 @@ bool Sodaq_WifiBee::parseHTTPResponse(uint16_t& httpCode)
   }
 
   return result;
+}
+
+/*!
+* This method checks if a number of milliseconds
+* have elapsed. It is overflow safe.
+* @param startTS The start timestamp
+* @param ms The time out period in milliseconds
+* @return `true` if elapsed time >= ms
+* otherwise `false` .
+*/
+bool Sodaq_WifiBee::timedOut32(uint32_t startTS, uint32_t ms)
+{
+  uint32_t nowTS = millis();
+  uint32_t diffTS = (nowTS >= startTS) ? nowTS - startTS : nowTS + UINT_32_MAX - startTS;
+
+  return (diffTS > ms);
 }
 
 /*!
