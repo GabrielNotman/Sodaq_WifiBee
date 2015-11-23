@@ -29,11 +29,13 @@ void setup() {
   Serial.println("-----------------------------------------");
 
   if (wifiBee.openTCP("httpbin.org", 80)) {
+    Serial.println();
     Serial.println("---------------------");
     Serial.println("TCP Connection Opened");
     Serial.println("---------------------");
 
     if (wifiBee.sendTCPAscii(TCP_DATA)) {
+      Serial.println();
       Serial.println("---------");
       Serial.println("Data Sent");
       Serial.println("---------");
@@ -41,6 +43,7 @@ void setup() {
       char buffer[1024];
       size_t bytesRead;
       if (wifiBee.readResponseAscii(buffer, sizeof(buffer), bytesRead)) {
+        Serial.println();
         Serial.println("---------");
         Serial.println("Response:");
         Serial.println("---------");

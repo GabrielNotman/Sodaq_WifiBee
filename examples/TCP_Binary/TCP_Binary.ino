@@ -22,13 +22,14 @@ void setup() {
   wifiBee.connectionSettings(SSID, "", PASSWORD);
   
   //This sets the WifiBee to debug mode over Serial
-  wifiBee.setDiag(Serial);
+  //wifiBee.setDiag(Serial);
   
   Serial.println("-----------------------------------------");
   Serial.println("Testing TCP Connection to: httpbin.org:80");
   Serial.println("-----------------------------------------");
 
   if (wifiBee.openTCP("httpbin.org", 80)) {
+    Serial.println();
     Serial.println("---------------------");
     Serial.println("TCP Connection Opened");
     Serial.println("---------------------");
@@ -42,6 +43,7 @@ void setup() {
     //First the HTTP part then the binary payload
     if (wifiBee.sendTCPAscii(TCP_DATA, false)) {
       wifiBee.sendTCPBinary(sendBuffer, sizeof(sendBuffer));
+      Serial.println();
       Serial.println("---------");
       Serial.println("Data Sent");
       Serial.println("---------");
@@ -49,6 +51,7 @@ void setup() {
       char buffer[1024];
       size_t bytesRead;
       if (wifiBee.readResponseAscii(buffer, sizeof(buffer), bytesRead)) {
+        Serial.println();
         Serial.println("---------");
         Serial.println("Response:");
         Serial.println("---------");
