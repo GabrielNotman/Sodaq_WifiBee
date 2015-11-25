@@ -1351,7 +1351,7 @@ bool Sodaq_WifiBee::parseHTTPResponse(uint16_t& httpCode)
 bool Sodaq_WifiBee::timedOut32(uint32_t startTS, uint32_t ms)
 {
   uint32_t nowTS = millis();
-  uint32_t diffTS = (nowTS >= startTS) ? nowTS - startTS : nowTS + UINT_32_MAX - startTS;
+  uint32_t diffTS = (nowTS >= startTS) ? nowTS - startTS : nowTS + (UINT_32_MAX - startTS);
 
   return (diffTS > ms);
 }
