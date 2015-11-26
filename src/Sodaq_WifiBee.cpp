@@ -1487,11 +1487,13 @@ void Sodaq_WifiBeeOnOff::init(int vcc33Pin, int onoffPin, int statusPin)
 {
   if (vcc33Pin >= 0) {
     _vcc33Pin = vcc33Pin;
+    digitalWrite(_vcc33Pin, LOW);
     pinMode(_vcc33Pin, OUTPUT);
   }
 
   if (onoffPin >= 0) {
     _onoffPin = onoffPin;
+    digitalWrite(_onoffPin, HIGH);
     pinMode(_onoffPin, OUTPUT);
   }
 
