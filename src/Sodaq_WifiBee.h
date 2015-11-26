@@ -23,16 +23,26 @@
 
 #include <Arduino.h>
 #include <Stream.h>
-#include "Sodaq_Switchable_Device/Sodaq_Switchable_Device.h"
+#include "Sodaq_OnOffBee.h"
 
-class Sodaq_WifiBee : public Stream, public SwitchableDevice
+/*!
+ * \def WIFIBEE_DEFAULT_BUFFER_SIZE
+ *
+ * The Sodaq_WifiBee class uses an internal buffer to read responses from
+ * the device. The buffer is allocated in .init(), and the size is specified
+ * by the optional fifth parameter. The default value for that parameter is
+ * set by this define.
+ */
+#define WIFIBEE_DEFAULT_BUFFER_SIZE      1024
+
+class Sodaq_WifiBee : public Stream
 {
 public:
   Sodaq_WifiBee();
   virtual ~Sodaq_WifiBee();
 
-  void init(Stream& stream, const uint8_t dtrPin, 
-    const size_t bufferSize);
+  void init(Stream &stream, int vcc33Pin, int onoffPin, int statusPin,
+    const size_t bufferSize=WIFIBEE_DEFAULT_BUFFER_SIZE);
 
   void connectionSettings(const char* APN, const char* username,
       const char* password);
@@ -44,11 +54,17 @@ public:
 
   const char* getDeviceType();
 
-  void usePowerSwitching(const uint8_t powerPin);
+  bool on();
 
-  void on();
+  bool off();
 
-  void off();
+  bool isAlive();
+
+  // Set the ON/OFF method
+  // This is only needed if the default method is not applicable
+  void setOnOff(Sodaq_OnOffBee & onoff);
+
+  void setOnOff(Sodaq_OnOffBee * onoff);
 
   // HTTP methods
   // These use HTTP/1.1 and add headers for HOST (all)
@@ -123,13 +139,13 @@ private:
   Stream* _dataStream;  /*!< A reference to the stream object used for communicating with the WifiBee. */
   Stream* _diagStream; /*!< A reference to an optional stream object used for debugging. */
   
-  uint8_t _dtrPin;  /*!< The Bee socket's DTR pin. */
-  uint8_t _pwrPin; /*!< Optional Bee socket power switching pin.*/
-  bool _usePwrSwitch; /*!< Indicates whether to switch with the Power or DTR pin.*/
+  Sodaq_OnOffBee * _onoff; /*!< A reference to the object used for switching the device on and off. */
 
   size_t _bufferSize;  /*!< The allocated size of `_buffer`. */
   size_t _bufferUsed;  /*!< The current amount of `_buffer` which is in use. */
   uint8_t* _buffer;  /*!< The buffer used to store received data. */
+
+  bool isOn();
 
   void flushInputStream();
 

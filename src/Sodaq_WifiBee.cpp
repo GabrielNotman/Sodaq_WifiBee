@@ -36,6 +36,7 @@
 
 // Lua prompts
 #define LUA_PROMPT "\r\n> "
+#define OK_PROMPT "OK\r\n> "
 #define CONNECT_PROMPT "|C|"
 #define RECONNECT_PROMPT "|RC|"
 #define DISCONNECT_PROMPT "|DC|"
@@ -46,6 +47,7 @@
 #define EOF_PROMPT "|EOF|" // Cannot start with a HEX character (0..9, A..F)
 
 // Lua connection callback scripts
+#define OK_COMMAND "uart.write(0, \"OK\\r\\n\")"
 #define RECEIVED_CALLBACK "function(s, d) lastData=d print(\"|DR|\") end" // Max length 231
 #define STATUS_CALLBACK "print(\"|\" .. \"STS|\" .. wifi.sta.status() .. \"|\")" // Max length 255
 #define READ_BACK "uart.write(0, \"|\" .. \"SOF|\") for i=1, lastData:len(), 1 do uart.write(0, string.format(\"%02X\", lastData:byte(i))) end uart.write(0, \"|EOF|\")" // Max length 255
@@ -65,7 +67,26 @@
 
 #define UINT_32_MAX 0xFFFFFFFF
 
-/*! 
+// A specialized class to switch on/off the WifiBee module
+// The VCC3.3 pin is switched by the Autonomo BEE_VCC pin
+// The DTR pin is the actual ON/OFF pin, it is A13 on Autonomo, D20 on Tatu
+class Sodaq_WifiBeeOnOff : public Sodaq_OnOffBee
+{
+public:
+  Sodaq_WifiBeeOnOff();
+  void init(int vcc33Pin, int onoffPin, int statusPin);
+  void on();
+  void off();
+  bool isOn();
+private:
+  int8_t _vcc33Pin; /*!< The I/O pin to switch the 3V3 on or off. */
+  int8_t _onoffPin; /*!< The I/O pin to switch the device on or off. */
+  int8_t _statusPin; /*!< The I/O pin which indicates whether the device is on or off. */
+};
+
+static Sodaq_WifiBeeOnOff sodaq_wifibee_onoff;
+
+/*!
 * Initialises member variables to default values,
 * including any pointers to NULL.
 */
@@ -75,21 +96,17 @@ Sodaq_WifiBee::Sodaq_WifiBee()
   _username = "";
   _password = "";
 
+  _onoff = 0;
+
   _bufferSize = 0;
   _bufferUsed = 0;
   _buffer = NULL;
 
   _dataStream = NULL;
   _diagStream = NULL;
-
-  // Initialize to some unlikely value
-  _dtrPin = 0xFF;
-  _pwrPin = 0xFF;
-
-  _usePwrSwitch = false;
 }
 
-/*! 
+/*!
 * Frees any memory allocated to the internal buffer.
 */
 Sodaq_WifiBee::~Sodaq_WifiBee()
@@ -99,17 +116,21 @@ Sodaq_WifiBee::~Sodaq_WifiBee()
   }
 }
 
-/*! 
+/*!
 * This method initialises a Sodaq_WifiBee object.
-* @param stream A reference to the stream object used for communicating with the WifiBee. 
-* @param dtrPin The I/O pin connected to the Bee socket's DTR pin.
+* @param stream A reference to the stream object used for communicating with the WifiBee.
+* @param vcc33Pin The I/O pin to switch the 3V3 on or off (-1 if not used).
+* @param onoffPin The I/O pin to switch the device on or off.
+* @param statusPin The I/O pin which indicates whether the device is on or off.
 * @param bufferSize The amount of memory to allocate to the internal buffer.
 */
-void Sodaq_WifiBee::init(Stream& stream, const uint8_t dtrPin,
+void Sodaq_WifiBee::init(Stream& stream, int vcc33Pin, int onoffPin, int statusPin,
   const size_t bufferSize)
 {
+  sodaq_wifibee_onoff.init(vcc33Pin, onoffPin, statusPin);
+  _onoff = &sodaq_wifibee_onoff;
+
   _dataStream = &stream;
-  _dtrPin = dtrPin;
 
   _bufferSize = bufferSize;
   if (_buffer) {
@@ -117,8 +138,7 @@ void Sodaq_WifiBee::init(Stream& stream, const uint8_t dtrPin,
   }
   _buffer = (uint8_t*)malloc(_bufferSize);
 
-  pinMode(_dtrPin, OUTPUT);
-
+  // TODO Do we want to do this here right now?
   off();
 }
 
@@ -129,7 +149,7 @@ void Sodaq_WifiBee::init(Stream& stream, const uint8_t dtrPin,
 * @param password The password for the wifi network.
 */
 void Sodaq_WifiBee::connectionSettings(const char* APN, const char* username,
-    const char* password)
+  const char* password)
 {
   _APN = APN;
   _username = username;
@@ -145,7 +165,7 @@ void Sodaq_WifiBee::connectionSettings(const String& APN, const String& username
   connectionSettings(APN.c_str(), username.c_str(), password.c_str());
 }
 
-/*! 
+/*!
 * This method sets the stream object reference to use for debug/diagnostic purposes.
 * @param stream The reference to the stream object.
 */
@@ -154,7 +174,7 @@ void Sodaq_WifiBee::setDiag(Stream& stream)
   _diagStream = &stream;
 }
 
-/*! 
+/*!
 * This method can be used to identify the specific Bee module.
 * @return The literal constant "WifiBee".
 */
@@ -164,65 +184,75 @@ const char* Sodaq_WifiBee::getDeviceType()
 }
 
 /*!
-* This method sets the WifiBee to use power switching instead of DTR switching.
-* @param powerPin The power switching pin.
-*/
-void Sodaq_WifiBee::usePowerSwitching(const uint8_t powerPin)
-{
-  _pwrPin = powerPin;
-  _usePwrSwitch = true;
-
-  pinMode(_pwrPin, OUTPUT);
-}
-
-
-/*! 
-* This method switches on the WifiBee. 
+* This method switches the WifiBee on.
 * It is called automatically, as required, by most methods.
+* It attempts to call _onoff::on().
+* @return `true` if the WifiBee is now on, `false` otherwise.
 */
-void Sodaq_WifiBee::on()
+bool Sodaq_WifiBee::on()
 {
   diagPrintLn("\r\nPower ON");
-
-  // If a custom on() method has been supplied
-  if (_onMethod != NULL) {
-    _onMethod();
-  }
-  else {
-    // If we are switching using the power pin, we set _pwrPin HIGH (on)
-    if (_usePwrSwitch) {
-      digitalWrite(_pwrPin, HIGH);
+  if (!isOn()) {
+    if (_onoff) {
+      _onoff->on();
     }
-
-    // We always set _dtrPin LOW (on)
-    digitalWrite(_dtrPin, LOW);
-
-    skipTillPrompt(LUA_PROMPT, WAKE_DELAY);
   }
+  
+  bool result = skipTillPrompt(LUA_PROMPT, WAKE_DELAY);
+  // If it was already on, the above may have failed
+  // so we try with the isAlive() method.
+  if (!result) {
+    result |= isAlive();
+  }
+
+  return result;
 }
 
-/*! 
-* This method switches off the WifiBee. 
+/*!
+* This method switches the WifiBee off.
 * It is called automatically, as required, by most methods.
+* It attempts to call _onoff::off().
+* @return `true` if the WifiBee is now off, `false` otherwise.
 */
-void Sodaq_WifiBee::off()
+bool Sodaq_WifiBee::off()
 {
   diagPrintLn("\r\nPower OFF");
 
-  // If a custom off() method has been supplied
-  if (_offMethod != NULL) {
-    _offMethod();
+  // No matter if it is on or off, turn it off.
+  if (_onoff) {
+    _onoff->off();
   }
-  else {
-    // If we are switching using the power pin, we set _pwrPin LOW (off)
-    // otherwise if we are using the DTR to switch, we set _dtrPin HIGH (off)
-    if (_usePwrSwitch) {
-      digitalWrite(_pwrPin, LOW);
-    }
-    else {
-      digitalWrite(_dtrPin, HIGH);
-    }
-  }
+
+  // TODO _echoOff = false;
+  return !isOn();
+}
+
+/*!
+* This method checkes if the WifiBee is on by sending
+* a status command which should return "OK".
+* @return `true` if an "OK" response was received, `false` otherwise.
+*/
+bool Sodaq_WifiBee::isAlive()
+{
+  println(OK_COMMAND);
+  return skipTillPrompt(OK_PROMPT, RESPONSE_TIMEOUT);
+}
+
+/*!
+* This method replaces the default switching object for the WifiBee.
+* @param onoff A reference to the new switching control object.
+*/
+void Sodaq_WifiBee::setOnOff(Sodaq_OnOffBee & onoff)
+{ 
+  _onoff = &onoff; 
+}
+
+/*!
+*\overload
+*/
+void Sodaq_WifiBee::setOnOff(Sodaq_OnOffBee * onoff)
+{ 
+  _onoff = onoff; 
 }
 
 // HTTP methods
@@ -237,7 +267,7 @@ void Sodaq_WifiBee::off()
 * @return `true` if a connection is established and the data is sent, `false` otherwise.
 */
 bool Sodaq_WifiBee::HTTPGet(const char* server, const uint16_t port,
-    const char* URI, const char* headers, uint16_t& httpCode)
+  const char* URI, const char* headers, uint16_t& httpCode)
 {
   return HTTPAction(server, port, "GET", URI, headers, "", httpCode);
 }
@@ -256,15 +286,15 @@ bool Sodaq_WifiBee::HTTPGet(const String& server, const uint16_t port,
 * @param server The server/host to connect to (IP address or domain).
 * @param port The port to connect to.
 * @param URI The resource location on the server/host.
-* @param headers Any additional headers, each must be followed by a CRLF. 
+* @param headers Any additional headers, each must be followed by a CRLF.
 * HOST & Content-Length headers are added automatically.
 * @param body The body (can be blank) to send with the request. Must not start with a CRLF.
 * @param httpCode The HTTP response code is written to this parameter (if a response is received).
 * @return `true` if a connection is established and the data is sent, `false` otherwise.
 */
 bool Sodaq_WifiBee::HTTPPost(const char* server, const uint16_t port,
-    const char* URI, const char* headers, const char* body,
-    uint16_t& httpCode)
+  const char* URI, const char* headers, const char* body,
+  uint16_t& httpCode)
 {
   return HTTPAction(server, port, "POST", URI, headers, body, httpCode);
 }
@@ -310,7 +340,7 @@ bool Sodaq_WifiBee::HTTPPut(const String& server, const uint16_t port,
 }
 
 // TCP methods
-/*! 
+/*!
 * This method opens a TCP connection to a remote server.
 * @param server The server/host to connect to (IP address or domain).
 * @param port The port to connect to.
@@ -321,7 +351,7 @@ bool Sodaq_WifiBee::openTCP(const char* server, uint16_t port)
   return openConnection(server, port, "net.TCP");
 }
 
-/*! 
+/*!
 * \overload
 */
 bool Sodaq_WifiBee::openTCP(const String& server, uint16_t port)
@@ -329,7 +359,7 @@ bool Sodaq_WifiBee::openTCP(const String& server, uint16_t port)
   return openTCP(server.c_str(), port);
 }
 
-/*! 
+/*!
 * This method sends an ASCII chunk of data over an open TCP connection.
 * @param data The buffer containing the data to be sent.
 * @param waitForResponse Expect/wait for a reply from the server, default = true.
@@ -348,7 +378,7 @@ bool Sodaq_WifiBee::sendTCPAscii(const String& data, const bool waitForResponse)
   return sendTCPAscii(data.c_str(), waitForResponse);
 }
 
-/*! 
+/*!
 * This method sends a binary chunk of data over an open TCP connection.
 * @param data The buffer containing the data to be sent.
 * @param length The number of bytes, contained in `data`, to send.
@@ -360,7 +390,7 @@ bool Sodaq_WifiBee::sendTCPBinary(const uint8_t* data, const size_t length, cons
   return transmitBinaryData(data, length, waitForResponse);
 }
 
-/*! 
+/*!
 * This method closes an open TCP connection.
 * @return `true` if the connection was closed, otherwise `false`.
 * It will return `false` if the connection was already closed.
@@ -460,7 +490,7 @@ bool Sodaq_WifiBee::readResponseAscii(char* buffer, const size_t size, size_t& b
 * Does not add a terminating '\0'.
 * @param buffer The buffer to copy the data into.
 * @param size The size of `buffer`.
-* @param bytesRead The number of bytes copied is written to this parameter. 
+* @param bytesRead The number of bytes copied is written to this parameter.
 * @return `false` if there is no data to copy, otherwise `true`.
 */
 bool Sodaq_WifiBee::readResponseBinary(uint8_t* buffer, const size_t size, size_t& bytesRead)
@@ -489,7 +519,7 @@ bool Sodaq_WifiBee::readResponseBinary(uint8_t* buffer, const size_t size, size_
 * It will return `false` if the body is empty or cannot be determined.
 */
 bool Sodaq_WifiBee::readHTTPResponse(char* buffer, const size_t size,
-    size_t& bytesRead, uint16_t& httpCode)
+  size_t& bytesRead, uint16_t& httpCode)
 {
   if (_bufferUsed == 0) {
     return false;
@@ -497,7 +527,7 @@ bool Sodaq_WifiBee::readHTTPResponse(char* buffer, const size_t size,
 
   // Read HTTP response code
   parseHTTPResponse(httpCode);
-  
+
   // Add 4 to start from after the double newline
   char* startPos = strstr((char*)_buffer, "\r\n\r\n") + 4;
 
@@ -518,10 +548,11 @@ bool Sodaq_WifiBee::readHTTPResponse(char* buffer, const size_t size,
 * @return result of `_dataStream->write(x)` or 0 if `_dataStream == NULL`.
 */
 size_t Sodaq_WifiBee::write(uint8_t x)
-{ 
+{
   if (_dataStream) {
     return _dataStream->write(x);
-  } else {
+  }
+  else {
     return 0;
   }
 }
@@ -535,7 +566,8 @@ int Sodaq_WifiBee::available()
 {
   if (_dataStream) {
     return _dataStream->available();
-  } else {
+  }
+  else {
     return 0;
   }
 }
@@ -546,10 +578,11 @@ int Sodaq_WifiBee::available()
 * @return result of `_dataStream->peek()` or -1 if `_dataStream == NULL`.
 */
 int Sodaq_WifiBee::peek()
-{ 
+{
   if (_dataStream) {
     return _dataStream->peek();
-  } else {
+  }
+  else {
     return -1;
   }
 }
@@ -560,10 +593,11 @@ int Sodaq_WifiBee::peek()
 * @return result of `_dataStream->read()` or -1 if `_dataStream == NULL`.
 */
 int Sodaq_WifiBee::read()
-{ 
+{
   if (_dataStream) {
     return _dataStream->read();
-  } else {
+  }
+  else {
     return -1;
   }
 }
@@ -580,19 +614,34 @@ void Sodaq_WifiBee::flush() {
 
 // Private methods
 /*!
-* This method reads and empties the input buffer of `_dataStream`. 
-* It attempts to output the data it reads to `_diagStream`. 
+* This method checkes if the WifiBee is on.
+* It attempts to call _onoff::isOn().
+* @return `true` if the WifiBee is on, `false` otherwise.
+*/
+bool Sodaq_WifiBee::isOn()
+{
+  if (_onoff) {
+    return _onoff->isOn();
+  }
+
+  // No onoff. Let's assume it is on.
+  return true;
+}
+
+/*!
+* This method reads and empties the input buffer of `_dataStream`.
+* It attempts to output the data it reads to `_diagStream`.
 */
 void Sodaq_WifiBee::flushInputStream()
 {
   while (available()) {
-    diagPrint((char )read());
+    diagPrint((char)read());
   }
 }
 
 /*!
-* This method reads and empties the input buffer of `_dataStream`. 
-* It continues until the specified amount of time has elapsed. 
+* This method reads and empties the input buffer of `_dataStream`.
+* It continues until the specified amount of time has elapsed.
 * It attempts to output the data it reads to `_diagStream`.
 * @param timeMS The time limit in milliseconds.
 * @return The number of bytes it read.
@@ -611,7 +660,8 @@ int Sodaq_WifiBee::skipForTime(const uint32_t timeMS)
       char c = read();
       diagPrint(c);
       count++;
-    } else {
+    }
+    else {
       _delay(10);
     }
   }
@@ -654,10 +704,12 @@ bool Sodaq_WifiBee::skipTillPrompt(const char* prompt, const uint32_t timeMS)
           result = true;
           break;
         }
-      } else {
+      }
+      else {
         index = 0;
       }
-    } else {
+    }
+    else {
       _delay(10);
     }
   }
@@ -712,7 +764,7 @@ bool Sodaq_WifiBee::readChar(char& data, const uint32_t timeMS)
 * limit, otherwise `false`.
 */
 bool Sodaq_WifiBee::readTillPrompt(uint8_t* buffer, const size_t size,
-    size_t& bytesStored, const char* prompt, const uint32_t timeMS)
+  size_t& bytesStored, const char* prompt, const uint32_t timeMS)
 {
   if (!_dataStream) {
     return false;
@@ -720,13 +772,13 @@ bool Sodaq_WifiBee::readTillPrompt(uint8_t* buffer, const size_t size,
 
   bool result = false;
 
-  uint32_t startTS = millis(); 
+  uint32_t startTS = millis();
   size_t promptIndex = 0;
   size_t promptLen = strlen(prompt);
 
   size_t bufferIndex = 0;
   size_t streamCount = 0;
-  
+
   while (!timedOut32(startTS, timeMS)) {
     if (available()) {
       char c = read();
@@ -747,10 +799,12 @@ bool Sodaq_WifiBee::readTillPrompt(uint8_t* buffer, const size_t size,
           bufferIndex = ((size - 1) < (streamCount - promptLen)) ? (size - 1) : (streamCount - promptLen);
           break;
         }
-      } else {
+      }
+      else {
         promptIndex = 0;
       }
-    } else {
+    }
+    else {
       _delay(10);
     }
   }
@@ -765,7 +819,7 @@ bool Sodaq_WifiBee::readTillPrompt(uint8_t* buffer, const size_t size,
 * It continues until it finds the specified prompt or until
 * the specified amount of time has elapsed.
 * The source data is converted from HEX and copied to the
-* buffer supplied. 
+* buffer supplied.
 * The first letter of the prompt cannot be a valid Hex char.
 * It attempts to output the data it reads to `_diagStream`.
 * @param buffer The buffer to copy the data into.
@@ -861,7 +915,8 @@ void Sodaq_WifiBee::sendAscii(const char* data)
       //Keep track of the number of '\' symbols up to the index
       if (data[index] == '\\') {
         slashCount++;
-      }  else {
+      }
+      else {
         slashCount = 0;
       }
 
@@ -943,7 +998,7 @@ void Sodaq_WifiBee::sendEscapedAscii(const char* data)
         break;
       default:
         print(data[index]);
-        escaped = false; 
+        escaped = false;
         break;
       }
 
@@ -1000,7 +1055,7 @@ void Sodaq_WifiBee::sendEscapedBinary(const uint8_t* data, const size_t length)
 * otherwise `false`.
 */
 bool Sodaq_WifiBee::openConnection(const char* server, const uint16_t port,
-    const char* type)
+  const char* type)
 {
   on();
 
@@ -1100,7 +1155,8 @@ bool Sodaq_WifiBee::transmitBinaryData(const uint8_t* data, const size_t length,
   if (result && waitForResponse) {
     if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
       readServerResponse();
-    } else {
+    }
+    else {
       clearBuffer();
     }
   }
@@ -1119,7 +1175,7 @@ bool Sodaq_WifiBee::readServerResponse()
 
   println(READ_BACK);
   result = skipTillPrompt(SOF_PROMPT, RESPONSE_TIMEOUT);
-  
+
   if (result) {
     result = readHexTillPrompt(_buffer, _bufferSize, _bufferUsed, EOF_PROMPT,
       READBACK_TIMEOUT);
@@ -1169,7 +1225,7 @@ void Sodaq_WifiBee::disconnect()
 bool Sodaq_WifiBee::getStatus(uint8_t& status)
 {
   bool result;
-  
+
   println(STATUS_CALLBACK);
   result = skipTillPrompt(STATUS_PROMPT, RESPONSE_TIMEOUT);
 
@@ -1183,15 +1239,16 @@ bool Sodaq_WifiBee::getStatus(uint8_t& status)
   if (result) {
     if ((statusCode >= '0') && (statusCode <= '5')) {
       status = statusCode - '0';
-    } else {
+    }
+    else {
       result = false;
     }
   }
-  
+
   return result;
 }
 
-/*! 
+/*!
 * This method repeatedly calls getStatus() to check the connection status.
 * It continues until it the network has been joined or until the
 * specified time limit has elapsed.
@@ -1316,7 +1373,7 @@ bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
   return result;
 }
 
-/*! 
+/*!
 * This method parses the HTTP response code from the data received.
 * @param httpCode The response code is written into this parameter.
 * @return `true` if the conversion returns a non-zero value,
@@ -1372,7 +1429,7 @@ inline void Sodaq_WifiBee::setSimpleCallBack(const char* eventName, const char* 
   skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
 }
 
-/*! 
+/*!
 * This inline method clears the internal buffer.
 */
 inline void Sodaq_WifiBee::clearBuffer()
@@ -1380,7 +1437,7 @@ inline void Sodaq_WifiBee::clearBuffer()
   _bufferUsed = 0;
 }
 
-/*! 
+/*!
 * This inline method is used throughout the class to add a delay.
 * @param ms The delay in milliseconds.
 */
@@ -1407,4 +1464,94 @@ inline void Sodaq_WifiBee::transmitSendBuffer()
 {
   println("wifiConn:send(sb) sb=\"\"");
   skipTillPrompt(LUA_PROMPT, RESPONSE_TIMEOUT);
+}
+
+/*!
+* Initialises member variables to default values.
+* All pin variables are set to -1.
+*/
+Sodaq_WifiBeeOnOff::Sodaq_WifiBeeOnOff()
+{
+  _vcc33Pin = -1;
+  _onoffPin = -1;
+  _statusPin = -1;
+}
+
+/*!
+* This method initialises a Sodaq_WifiBeeOnOff object.
+* @param vcc33Pin The I/O pin to switch the 3V3 on or off (-1 if not used).
+* @param onoffPin The I/O pin to switch the device on or off.
+* @param statusPin The I/O pin which indicates whether the device is on or off.
+*/
+void Sodaq_WifiBeeOnOff::init(int vcc33Pin, int onoffPin, int statusPin)
+{
+  if (vcc33Pin >= 0) {
+    _vcc33Pin = vcc33Pin;
+    pinMode(_vcc33Pin, OUTPUT);
+  }
+
+  if (onoffPin >= 0) {
+    _onoffPin = onoffPin;
+    pinMode(_onoffPin, OUTPUT);
+  }
+
+  if (statusPin >= 0) {
+    _statusPin = statusPin;
+    pinMode(_statusPin, INPUT);
+  }
+}
+
+
+/*!
+* This method switches the WifiBee device on.
+* It is called by the Sodaq_WifiBee::on() method.
+*/
+void Sodaq_WifiBeeOnOff::on()
+{
+  // First VCC 3.3 HIGH
+  if (_vcc33Pin >= 0) {
+    digitalWrite(_vcc33Pin, HIGH);
+  }
+  // Wait a little
+  // TODO Figure out if this is really needed
+  delay(2);
+  if (_onoffPin >= 0) {
+    digitalWrite(_onoffPin, LOW);
+  }
+}
+
+/*!
+* This method switches the WifiBee device off.
+* It is called by the Sodaq_WifiBee::off() method.
+*/
+void Sodaq_WifiBeeOnOff::off()
+{
+  if (_vcc33Pin >= 0) {
+    digitalWrite(_vcc33Pin, LOW);
+  }
+
+  if (_onoffPin >= 0) {
+    digitalWrite(_onoffPin, HIGH);
+  }
+}
+
+/*!
+* This method checks if the WifiBee device is on.
+* It is called by the Sodaq_WifiBee::isOn() method.
+* @return `true` if the WifiBee device is on, `false` otherwise.
+*/
+bool Sodaq_WifiBeeOnOff::isOn()
+{
+  if (_statusPin >= 0) {
+    bool status = digitalRead(_statusPin);
+    return status;
+  }
+  if (_onoffPin >= 0) {
+    // Fall back. Use the onoff pin
+    bool status = !digitalRead(_onoffPin);
+    return status;
+  }
+
+  // No status pin, nothing. Let's assume it is on.
+  return true;
 }
