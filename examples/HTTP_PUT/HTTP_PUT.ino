@@ -4,9 +4,6 @@
 #define SSID ""
 #define PASSWORD ""
 
-//The DTR pin used for on/off
-#define DTR_PIN BEEDTR
-
 //You can add multiple headers each must be followed by "\r\n"
 #define TEST_HEADERS "Accept: */*\r\n"
 
@@ -21,11 +18,11 @@ void setup() {
   
   Serial.println("Device Type: " + String(wifiBee.getDeviceType()));
   
-  wifiBee.init(Serial1, DTR_PIN, 1024);
+  wifiBee.init(Serial1, -1, BEEDTR, BEECTS, 1024);
   wifiBee.connectionSettings(SSID, "", PASSWORD);
   
   //This sets the WifiBee to debug mode over Serial
-  //wifiBee.setDiag(Serial);
+  wifiBee.setDiag(Serial);
 
   Serial.println("----------------------------------");
   Serial.println("HTTP PUT to http://httpbin.org/put");

@@ -53,7 +53,7 @@ readResponseBinary()
 ~~~~~~~~~~~~~~~{.c}
   Sodaq_WifiBee wifiBee;
   
-  wifiBee.init(Serial1, DTRPin, 256);
+  wifiBee.init(Serial1, VCCPin, DTRPin, CTSPin, 256);
   wifiBee.connectionSettings(WIFI_SSID, "", WIFI_PASSWORD);
 ~~~~~~~~~~~~~~~
 

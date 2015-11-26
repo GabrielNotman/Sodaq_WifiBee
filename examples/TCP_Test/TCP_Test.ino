@@ -4,9 +4,6 @@
 #define SSID ""
 #define PASSWORD ""
 
-//The DTR pin used for on/off
-#define DTR_PIN BEEDTR
-
 //HTTP GET command sent over TCP
 #define TCP_DATA "GET /get HTTP/1.1\r\nHOST: httpbin.org:80\r\n\r\n"
 
@@ -18,11 +15,11 @@ void setup() {
   
   Serial.println("Device Type: " + String(wifiBee.getDeviceType()));
   
-  wifiBee.init(Serial1, DTR_PIN, 1024);
+  wifiBee.init(Serial1, -1, BEEDTR, BEECTS, 1024);
   wifiBee.connectionSettings(SSID, "", PASSWORD);
   
   //This sets the WifiBee to debug mode over Serial
-  //wifiBee.setDiag(Serial);
+  wifiBee.setDiag(Serial);
   
   Serial.println("-----------------------------------------");
   Serial.println("Testing TCP Connection to: httpbin.org:80");

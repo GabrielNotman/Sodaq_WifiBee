@@ -95,7 +95,7 @@ bool ping()
   bool result = false;
   
 #ifdef DEBUG
-    SerialMonitor.println("Ping prelude");
+  SerialMonitor.println("Ping prelude");
 #endif
   BeeSerial.println(" ");
   skipForTime();
