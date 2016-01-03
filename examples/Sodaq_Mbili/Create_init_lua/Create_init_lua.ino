@@ -1,3 +1,4 @@
+//Serial Connections
 #define SerialMonitor Serial
 #define BeeSerial Serial1
 
@@ -6,7 +7,7 @@
 #define SKIP_TIME 500
 #define RESTART_TIME 2000
 
-//#define DEBUG
+#define DEBUG
 
 const uint8_t numRates = 4;
 const uint32_t baudRates[numRates] = {9600, 19200, 38400, 57600};
