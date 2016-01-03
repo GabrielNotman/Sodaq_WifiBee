@@ -1,5 +1,6 @@
 #include <Sodaq_WifiBee.h>
 
+//Wifi Credentials
 #define SSID ""
 #define PASSWORD ""
 

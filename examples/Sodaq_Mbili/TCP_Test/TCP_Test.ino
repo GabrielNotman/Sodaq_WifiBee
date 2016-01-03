@@ -17,7 +17,7 @@ void setup() {
   SerialMonitor.begin(57600);
   BeeSerial.begin(9600);
   
-  Serial.println("Device Type: " + String(wifiBee.getDeviceType()));
+  SerialMonitor.println("Device Type: " + String(wifiBee.getDeviceType()));
   
   wifiBee.init(BeeSerial, -1, BEEDTR, BEECTS, 1024);
   wifiBee.connectionSettings(SSID, "", PASSWORD);
