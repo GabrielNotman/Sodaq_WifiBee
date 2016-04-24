@@ -61,6 +61,7 @@
 #define READBACK_TIMEOUT 2500
 #define WAKE_DELAY 2000
 #define STATUS_DELAY 1000
+#define NEXT_PACKET_TIMEOUT 500
 
 #define NIBBLE2BYTE(X) ((X >= 'A') ? X - 'A' + 10: X - '0')
 #define HEX2BYTE(H, L) ((NIBBLE2BYTE(H) << 4) + NIBBLE2BYTE(L))
@@ -1358,6 +1359,9 @@ bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
     // Wait till we get the data received prompt
     if (result) {
       if (skipTillPrompt(RECEIVED_PROMPT, SERVER_RESPONSE_TIMEOUT)) {
+        while (skipTillPrompt(RECEIVED_PROMPT, NEXT_PACKET_TIMEOUT)) {
+        }
+
         readServerResponse();
         parseHTTPResponse(httpCode);
       }
