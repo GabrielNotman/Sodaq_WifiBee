@@ -48,9 +48,9 @@
 
 // Lua connection callback scripts
 #define OK_COMMAND "uart.write(0, \"OK\\r\\n\")"
-#define RECEIVED_CALLBACK "function(s, d) lastData=d print(d:len()..\"|DR|\") end" // Max length 231
+#define RECEIVED_CALLBACK "function(s, d) if lastData==nil then lastData=d end print(d:len()..\"|DR|\") end" // Max length 231
 #define STATUS_CALLBACK "print(\"|\" .. \"STS|\" .. wifi.sta.status() .. \"|\")" // Max length 255
-#define READ_BACK "uart.write(0, \"|\" .. \"SOF|\") for i=1, lastData:len(), 1 do uart.write(0, string.format(\"%02X\", lastData:byte(i))) tmr.wdclr() end uart.write(0, \"|EOF|\")" // Max length 255
+#define READ_BACK "uart.write(0, \"|\" .. \"SOF|\") for i=1, lastData:len(), 1 do uart.write(0, string.format(\"%02X\", lastData:byte(i))) tmr.wdclr() end lastData=nil uart.write(0, \"|EOF|\")" // Max length 255
 
 // Timeout constants
 #define RESPONSE_TIMEOUT 2000
