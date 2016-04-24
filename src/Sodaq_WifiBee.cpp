@@ -533,7 +533,13 @@ bool Sodaq_WifiBee::readHTTPResponse(char* buffer, const size_t size,
   char* startPos = strstr((char*)_buffer, "\r\n\r\n") + 4;
 
   size_t startIndex = startPos - (char*)_buffer;
-  bytesRead = ((size - 1) < (_bufferUsed - startIndex)) ? (size - 1) : (_bufferUsed - startIndex);
+
+  if (startIndex < _bufferUsed) {
+    bytesRead = ((size - 1) < (_bufferUsed - startIndex)) ? (size - 1) : (_bufferUsed - startIndex);
+  }
+  else {
+    bytesRead = 0;
+  }
 
   memcpy(buffer, startPos, bytesRead);
   buffer[bytesRead] = '\0';
