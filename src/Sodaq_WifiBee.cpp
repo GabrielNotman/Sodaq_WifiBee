@@ -1338,10 +1338,9 @@ bool Sodaq_WifiBee::HTTPAction(const char* server, const uint16_t port,
     sendAscii(buff);
     sendAscii("\\r\\n");
 
-    size_t bodyLen = strlen(body);
-    if (bodyLen > 0) {
+    if (strcmp(method, "GET") != 0) {
       sendAscii("Content-Length: ");
-      itoa(bodyLen, buff, 10);
+      itoa(strlen(body), buff, 10);
       sendAscii(buff);
       sendAscii("\\r\\n");
     }
