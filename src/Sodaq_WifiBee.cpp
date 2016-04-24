@@ -856,6 +856,7 @@ bool Sodaq_WifiBee::readHexTillPrompt(uint8_t* buffer, const size_t size,
 
   while (!timedOut32(startTS, timeMS)) {
     if (available()) {
+      startTS = millis();
       char c = read();
       diagPrint(c);
 
