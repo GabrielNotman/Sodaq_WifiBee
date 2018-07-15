@@ -6,34 +6,34 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-Sodaq_WifiBee		KEYWORD1
+Sodaq_WifiBee	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-init			KEYWORD2
+init	KEYWORD2
 connectionSettings	KEYWORD2
-setDiag			KEYWORD2
-getDeviceType		KEYWORD2
-on			KEYWORD2
-off			KEYWORD2
+setDiag	KEYWORD2
+getDeviceType	KEYWORD2
+on	KEYWORD2
+off	KEYWORD2
 
-HTTPGet			KEYWORD2
-HTTPPost		KEYWORD2
-HTTPPut			KEYWORD2
+HTTPGet	KEYWORD2
+HTTPPost	KEYWORD2
+HTTPPut	KEYWORD2
 
-opentTCP		KEYWORD2
-sendTCPAscii		KEYWORD2
-sendTCPBinary		KEYWORD2
-closeTCP		KEYWORD2
+opentTCP	KEYWORD2
+sendTCPAscii	KEYWORD2
+sendTCPBinary	KEYWORD2
+closeTCP	KEYWORD2
 
-openUDP			KEYWORD2
-sendUDPAscii 		KEYWORD2
-sendUDPBinary		KEYWORD2
-closeUDP		KEYWORD2
+openUDP	KEYWORD2
+sendUDPAscii	KEYWORD2
+sendUDPBinary	KEYWORD2
+closeUDP	KEYWORD2
 
-readResponseAscii 	KEYWORD2
+readResponseAscii	KEYWORD2
 readResponseBinary	KEYWORD2
 readHTTPResponse	KEYWORD2
 
